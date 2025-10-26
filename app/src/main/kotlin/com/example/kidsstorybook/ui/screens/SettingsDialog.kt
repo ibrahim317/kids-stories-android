@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -56,9 +57,10 @@ fun SettingsDialog(
                             "tr" -> "Ayarlar"
                             else -> "Settings"
                         },
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = BrightOrange,
+                        textAlign = TextAlign.Center
                     )
 
                     AssetIconButton(
@@ -78,10 +80,11 @@ fun SettingsDialog(
                         "tr" -> "Yaş Grubu"
                         else -> "Age Group"
                     },
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextDark,
-                    modifier = Modifier.fillMaxWidth()
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = VibrantPurple,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -105,10 +108,11 @@ fun SettingsDialog(
                         "tr" -> "Dil"
                         else -> "Language"
                     },
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextDark,
-                    modifier = Modifier.fillMaxWidth()
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = SkyBlue,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -181,9 +185,9 @@ private fun AgeOptionItem(
         Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = text,
-            fontSize = 18.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = TextDark
+            fontSize = 20.sp,
+            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
+            color = if (selected) TextDark else Color.DarkGray
         )
     }
 }
@@ -214,9 +218,9 @@ private fun LanguageOptionItem(
         Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = text,
-            fontSize = 18.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = TextDark
+            fontSize = 20.sp,
+            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
+            color = if (selected) TextDark else Color.DarkGray
         )
     }
 }

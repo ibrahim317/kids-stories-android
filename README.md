@@ -1,4 +1,4 @@
-# Kids Story Book Android App
+# Stories Quest
 
 A colorful, interactive Android app for children to read and listen to stories in multiple languages.
 

@@ -68,7 +68,8 @@ fun RoadmapScreen(
                 val totalLevels = StoryRepository.getTotalLevels()
                 val pinColors = listOf(PinColor.BLUE, PinColor.ORANGE, PinColor.PINK, PinColor.VIOLET)
 
-                for (level in 1..totalLevels) {
+                // Reverse order: highest level at top, level 1 at bottom
+                for (level in totalLevels downTo 1) {
                     val isUnlocked = progress.isLevelUnlocked(level)
                     val isCompleted = progress.isLevelCompleted(level)
                     val pinColor = pinColors[(level - 1) % pinColors.size]
@@ -76,7 +77,7 @@ fun RoadmapScreen(
                     // Alternate left and right positioning for a path-like layout
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = if (level % 2 == 1) Arrangement.Start else Arrangement.End
+                        horizontalArrangement = if (level % 2 == 0) Arrangement.Start else Arrangement.End
                     ) {
                         LevelPin(
                             levelNumber = level,
@@ -89,8 +90,8 @@ fun RoadmapScreen(
                                 }
                             },
                             modifier = Modifier.padding(
-                                start = if (level % 2 == 1) 32.dp else 0.dp,
-                                end = if (level % 2 == 0) 32.dp else 0.dp
+                                start = if (level % 2 == 0) 32.dp else 0.dp,
+                                end = if (level % 2 == 1) 32.dp else 0.dp
                             )
                         )
                     }

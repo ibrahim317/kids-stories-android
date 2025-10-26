@@ -1,4 +1,4 @@
-# Stories Quest
+# Stories Quest 
 
 A colorful, interactive Android app for children to read and listen to stories in multiple languages.
 

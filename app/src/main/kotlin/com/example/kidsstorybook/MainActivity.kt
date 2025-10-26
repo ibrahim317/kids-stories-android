@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.example.kidsstorybook.navigation.AppNavigation
 import com.example.kidsstorybook.ui.theme.KidsStoryBookTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install the native splash screen
+        val splashScreen = installSplashScreen()
+        
         super.onCreate(savedInstanceState)
         
         // Make the app full screen for immersive experience

@@ -2,6 +2,7 @@ package com.example.kidsstorybook.ui.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -32,7 +33,8 @@ fun CartoonButton(
     gradientColors: List<Color> = listOf(GradientYellowStart, GradientYellowEnd),
     fontSize: Int = 24,
     height: Dp = 80.dp,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    borderColor: Color? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -64,6 +66,13 @@ fun CartoonButton(
                     Brush.verticalGradient(listOf(DisabledGray, DisabledGray))
                 }
             )
+            .then(
+                if (borderColor != null) {
+                    Modifier.border(2.dp, borderColor, RoundedCornerShape(28.dp))
+                } else {
+                    Modifier
+                }
+            )
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -90,7 +99,8 @@ fun SmallCartoonButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     gradientColors: List<Color> = listOf(GradientBlueStart, GradientBlueEnd),
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    borderColor: Color? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -121,6 +131,13 @@ fun SmallCartoonButton(
                     Brush.verticalGradient(listOf(DisabledGray, DisabledGray))
                 }
             )
+            .then(
+                if (borderColor != null) {
+                    Modifier.border(2.dp, borderColor, RoundedCornerShape(20.dp))
+                } else {
+                    Modifier
+                }
+            )
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -139,4 +156,3 @@ fun SmallCartoonButton(
         )
     }
 }
-

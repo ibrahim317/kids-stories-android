@@ -1,7 +1,12 @@
 package com.example.kidsstorybook.ui.screens
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -9,13 +14,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.kidsstorybook.models.AgeGroup
 import com.example.kidsstorybook.models.AppSettings
 import com.example.kidsstorybook.ui.components.AssetIconButton
@@ -29,118 +41,133 @@ fun SettingsDialog(
     onSettingsChange: (AppSettings) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var selectedLanguage by remember { mutableStateOf(currentSettings.language) }
     var selectedAgeGroup by remember { mutableStateOf(currentSettings.ageGroup) }
 
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = modifier
-                .fillMaxWidth()
-                .shadow(16.dp, RoundedCornerShape(32.dp))
-                .clip(RoundedCornerShape(32.dp))
-                .background(White)
-                .padding(24.dp)
+                .size(1200.dp)
         ) {
+            // Background image from assets
+            Image(
+                painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(context)
+                        .data("file:///android_asset/settings_menu/menu.png")
+                        .size(coil.size.Size.ORIGINAL)
+                        .crossfade(false)
+                        .build()
+                ),
+                contentDescription = "Settings Menu Background",
+                modifier = Modifier
+                    .size(1200.dp)
+                    .fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+
+            // Content
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header with close button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = when (currentSettings.language) {
-                            "ar" -> "الإعدادات"
-                            "tr" -> "Ayarlar"
-                            else -> "Settings"
-                        },
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = BrightOrange,
-                        textAlign = TextAlign.Center
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    AssetIconButton(
-                        assetPath = "buttons/settings.png",
-                        contentDescription = "Close",
-                        onClick = onDismiss,
-                        size = 40.dp
-                    )
-                }
+                // Title image from assets
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(context)
+                            .data("file:///android_asset/settings_menu/title.png")
+                            .crossfade(true)
+                            .build()
+                    ),
+                    contentDescription = "Settings Title",
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .zIndex(1f),
+                    contentScale = ContentScale.Fit
+                )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Age Group Section
                 Text(
-                    text = when (currentSettings.language) {
+                    text = when (selectedLanguage) {
                         "ar" -> "الفئة العمرية"
                         "tr" -> "Yaş Grubu"
                         else -> "Age Group"
                     },
-                    fontSize = 24.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = VibrantPurple,
+                    color = Color(0xFF3D0066),
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Age options
+                // Age options - Vertical Stack
                 AgeGroup.values().forEach { ageGroup ->
-                    AgeOptionItem(
+                    KidsFriendlyOptionButton(
                         text = ageGroup.getDisplayName(selectedLanguage),
                         selected = selectedAgeGroup == ageGroup,
-                        onClick = { selectedAgeGroup = ageGroup }
+                        onClick = { selectedAgeGroup = ageGroup },
+                        gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
+                        modifier = Modifier.fillMaxWidth(0.85f)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Language Section
                 Text(
-                    text = when (currentSettings.language) {
+                    text = when (selectedLanguage) {
                         "ar" -> "اللغة"
                         "tr" -> "Dil"
                         else -> "Language"
                     },
-                    fontSize = 24.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = SkyBlue,
+                    color = Color(0xFF004D66),
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Language options
-                LanguageOptionItem(
-                    text = "اللغة العربية",
+                // Language options - Vertical Stack
+                KidsFriendlyOptionButton(
+                    text = "🇸🇦 العربية",
                     selected = selectedLanguage == "ar",
-                    onClick = { selectedLanguage = "ar" }
+                    onClick = { selectedLanguage = "ar" },
+                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
+                    modifier = Modifier.fillMaxWidth(0.85f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LanguageOptionItem(
-                    text = "English",
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                KidsFriendlyOptionButton(
+                    text = "🇬🇧 English",
                     selected = selectedLanguage == "en",
-                    onClick = { selectedLanguage = "en" }
+                    onClick = { selectedLanguage = "en" },
+                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
+                    modifier = Modifier.fillMaxWidth(0.85f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LanguageOptionItem(
-                    text = "Türkçe",
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                KidsFriendlyOptionButton(
+                    text = "🇹🇷 Türkçe",
                     selected = selectedLanguage == "tr",
-                    onClick = { selectedLanguage = "tr" }
+                    onClick = { selectedLanguage = "tr" },
+                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
+                    modifier = Modifier.fillMaxWidth(0.85f)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Apply button
+                // Apply button - Green for clear CTA
                 SmallCartoonButton(
                     text = when (selectedLanguage) {
                         "ar" -> "تطبيق"
@@ -151,77 +178,105 @@ fun SettingsDialog(
                         onSettingsChange(AppSettings(selectedLanguage, selectedAgeGroup))
                         onDismiss()
                     },
-                    gradientColors = listOf(GradientBlueStart, GradientBlueEnd),
-                    modifier = Modifier.fillMaxWidth(0.6f)
+                    gradientColors = listOf(Color(0xFF4CAF50), Color(0xFF2E7D32)),
+                    modifier = Modifier.fillMaxWidth(0.75f)
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Close button
+                AssetIconButton(
+                    assetPath = "buttons/home.png",
+                    contentDescription = "Close",
+                    onClick = onDismiss,
+                    size = 64.dp,
+                    modifier = Modifier.zIndex(2f)
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
     }
 }
 
 @Composable
-private fun AgeOptionItem(
+private fun KidsFriendlyOptionButton(
     text: String,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    gradientColors: List<Color>,
+    modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(if (selected) GradientYellowStart else LightGray)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = BrightOrange,
-                unselectedColor = DisabledGray
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "option_scale"
+    )
+
+    Box(
+        modifier = modifier
+            .heightIn(min = 56.dp)
+            .scale(scale)
+            .shadow(
+                elevation = if (selected) 16.dp else 6.dp,
+                shape = RoundedCornerShape(24.dp),
+                clip = false,
+                spotColor = if (selected) Color(0x80FFD700) else Color.Black.copy(alpha = 0.25f)
             )
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = text,
-            fontSize = 20.sp,
-            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
-            color = if (selected) TextDark else Color.DarkGray
-        )
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                brush = if (selected) {
+                    Brush.verticalGradient(gradientColors)
+                } else {
+                    Brush.verticalGradient(listOf(LightGray, Color(0xFFE0E0E0)))
+                }
+            )
+            .then(
+                if (selected) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = Color(0x80FFFFFF),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Check mark emoji or circle for selection
+            Text(
+                text = if (selected) "✓" else "○",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (selected) Color.White else Color.Gray
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Text(
+                text = text,
+                fontSize = if (selected) 20.sp else 18.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+                color = if (selected) TextLight else Color.DarkGray,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
-
-@Composable
-private fun LanguageOptionItem(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(if (selected) GradientPurpleStart else LightGray)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = VibrantPurple,
-                unselectedColor = DisabledGray
-            )
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = text,
-            fontSize = 20.sp,
-            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
-            color = if (selected) TextDark else Color.DarkGray
-        )
-    }
-}
-

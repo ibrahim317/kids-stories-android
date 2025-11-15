@@ -1,10 +1,14 @@
 package com.example.kidsstorybook.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import com.example.kidsstorybook.data.StoryRepository
 import com.example.kidsstorybook.models.AppSettings
 import com.example.kidsstorybook.models.GameProgress
@@ -22,19 +26,69 @@ fun RoadmapScreen(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        // Background
-        BackgroundImage(assetPath = "backgrounds/roadmap.png")
+    val totalLevels = StoryRepository.getTotalLevels()
+    val levelsPerSection = 5
+    
+    // Map roadmaps to their specific pin colors
+    val roadmapConfigs = listOf(
+        Triple("backgrounds/roadmap1.png", PinColor.BLUE, 1),
+        Triple("backgrounds/roadmap2.png", PinColor.PINK, 2),
+        Triple("backgrounds/roadmap3.png", PinColor.VIOLET, 3)
+    )
+    
+    val sectionsAscending = remember(totalLevels) {
+        roadmapConfigs.mapIndexed { index, (asset, color, _) ->
+            val startLevel = index * levelsPerSection + 1
+            val endLevel = minOf(totalLevels, startLevel + levelsPerSection - 1)
+            Triple(asset, (startLevel..endLevel).toList(), color)
+        }.filter { it.second.isNotEmpty() }
+    }
+    val sectionsForDisplay = remember(sectionsAscending) { sectionsAscending.reversed() }
+    
+    val scrollState = rememberScrollState()
+    
+    // Scroll to bottom once scrollState.maxValue is available
+    LaunchedEffect(Unit) {
+        // Wait for maxValue to be calculated - poll until it's ready
+        var attempts = 0
+        while (attempts < 100) {
+            val currentMax = scrollState.maxValue
+            if (currentMax > 0) {
+                // Small delay to ensure everything is stable
+                delay(50)
+                scrollState.animateScrollTo(currentMax)
+                break
+            }
+            delay(16) // ~1 frame at 60fps
+            attempts++
+        }
+    }
 
-        // Top bar with home and settings buttons
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            sectionsForDisplay.forEach { (backgroundAsset, levels, roadmapColor) ->
+                RoadmapSection(
+                    backgroundAsset = backgroundAsset,
+                    levels = levels,
+                    progress = progress,
+                    roadmapColor = roadmapColor,
+                    onLevelClick = onLevelClick
+                )
+            }
+        }
+
         Row(
             modifier = Modifier
+                .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             AssetIconButton(
                 assetPath = "buttons/home.png",
@@ -50,45 +104,66 @@ fun RoadmapScreen(
                 size = 56.dp
             )
         }
+    }
+}
 
-        // Level pins - positioned in a path layout
-        Box(
+@Composable
+private fun RoadmapSection(
+    backgroundAsset: String,
+    levels: List<Int>,
+    progress: GameProgress,
+    roadmapColor: PinColor,
+    onLevelClick: (Int) -> Unit
+) {
+    if (levels.isEmpty()) return
+
+    // Calculate height based on content: each level takes 140dp + 60dp top + 30dp bottom padding
+    val sectionHeight = remember(levels.size) {
+        (levels.size * 140).dp + 90.dp
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(sectionHeight)
+    ) {
+        BackgroundImage(
+            assetPath = backgroundAsset,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.matchParentSize()
+        )
+
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 40.dp),
-            contentAlignment = Alignment.Center
+                .padding(horizontal = 32.dp)
+                .padding(top = 60.dp, bottom = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(40.dp)
-            ) {
-                val totalLevels = StoryRepository.getTotalLevels()
-                val pinColors = listOf(PinColor.BLUE, PinColor.ORANGE, PinColor.PINK, PinColor.VIOLET)
+            levels.sortedDescending().forEach { level ->
+                val isUnlocked = progress.isLevelUnlocked(level)
+                val isCompleted = progress.isLevelCompleted(level)
+                val stars = progress.getStarsForLevel(level)
 
-                // Reverse order: highest level at top, level 1 at bottom
-                for (level in totalLevels downTo 1) {
-                    val isUnlocked = progress.isLevelUnlocked(level)
-                    val isCompleted = progress.isLevelCompleted(level)
-                    val pinColor = pinColors[(level - 1) % pinColors.size]
-
-                    // Alternate left and right positioning for a path-like layout
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center),
                         horizontalArrangement = if (level % 2 == 0) Arrangement.Start else Arrangement.End
                     ) {
                         LevelPin(
                             levelNumber = level,
                             isUnlocked = isUnlocked,
                             isCompleted = isCompleted,
-                            pinColor = pinColor,
-                            onClick = { 
-                                if (isUnlocked) {
-                                    onLevelClick(level)
-                                }
-                            },
+                            pinColor = roadmapColor,
+                            stars = stars,
+                            onClick = { onLevelClick(level) },
                             modifier = Modifier.padding(
                                 start = if (level % 2 == 0) 32.dp else 0.dp,
                                 end = if (level % 2 == 1) 32.dp else 0.dp
@@ -100,4 +175,3 @@ fun RoadmapScreen(
         }
     }
 }
-

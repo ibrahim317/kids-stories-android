@@ -26,7 +26,7 @@ fun BackgroundImage(
     Image(
         painter = painter,
         contentDescription = "Background",
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         contentScale = contentScale
     )
 }

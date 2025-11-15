@@ -2,7 +2,6 @@ package com.example.kidsstorybook.navigation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.kidsstorybook.data.PreferencesManager
 import com.example.kidsstorybook.data.StoryRepository
+import com.example.kidsstorybook.models.GameProgress
 import com.example.kidsstorybook.ui.screens.*
 
 sealed class Screen(val route: String) {
@@ -25,10 +25,13 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val preferencesManager = remember { PreferencesManager(context) }
+    val totalLevels = remember { StoryRepository.getTotalLevels() }
 
     // App state
     var settings by remember { mutableStateOf(preferencesManager.getSettings()) }
-    var progress by remember { mutableStateOf(preferencesManager.getProgress()) }
+    var progress by remember {
+        mutableStateOf(preferencesManager.getProgress().clamp(totalLevels))
+    }
     var showSettings by remember { mutableStateOf(false) }
 
     // Settings dialog
@@ -93,12 +96,21 @@ fun AppNavigation() {
                     level = levelNumber,
                     settings = settings,
                     onLevelComplete = {
-                        // Update progress
-                        val newProgress = progress.completeLevel(levelNumber)
-                        progress = newProgress
-                        preferencesManager.saveProgress(newProgress)
-                        
+                        // Update progress with full completion
+                        val newProgress = progress.withLevelStars(
+                            level = levelNumber,
+                            starsEarned = GameProgress.MAX_STARS,
+                            totalLevels = totalLevels
+                        )
+                        if (newProgress != progress) {
+                            progress = newProgress
+                            preferencesManager.saveProgress(newProgress)
+                        }
+
                         // Navigate back to roadmap
+                        navController.popBackStack()
+                    },
+                    onRoadmapClick = {
                         navController.popBackStack()
                     },
                     onHomeClick = {
@@ -106,6 +118,17 @@ fun AppNavigation() {
                     },
                     onSettingsClick = {
                         showSettings = true
+                    },
+                    onProgressUpdate = { level, stars ->
+                        val updatedProgress = progress.withLevelStars(
+                            level = level,
+                            starsEarned = stars,
+                            totalLevels = totalLevels
+                        )
+                        if (updatedProgress != progress) {
+                            progress = updatedProgress
+                            preferencesManager.saveProgress(updatedProgress)
+                        }
                     }
                 )
             } else {

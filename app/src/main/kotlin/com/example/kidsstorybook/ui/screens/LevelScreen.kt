@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -24,6 +25,7 @@ import com.example.kidsstorybook.models.AppSettings
 import com.example.kidsstorybook.models.Story
 import com.example.kidsstorybook.ui.components.AssetIconButton
 import com.example.kidsstorybook.ui.theme.TextLight
+import kotlinx.coroutines.delay
 
 @Composable
 fun LevelScreen(
@@ -31,37 +33,77 @@ fun LevelScreen(
     level: Int,
     settings: AppSettings,
     onLevelComplete: () -> Unit,
+    onRoadmapClick: () -> Unit,
     onHomeClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onProgressUpdate: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var currentImageIndex by remember { mutableStateOf(0) }
-    var isPlaying by remember { mutableStateOf(false) }
-    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    val imagePaths = remember(story.id, settings.language) {
+        story.getImagePaths(settings.language)
+    }
+    val hasMultiAudio = remember(story.id, settings.language) {
+        story.hasMultipleAudioFiles(settings.language)
+    }
+    val audioPath = remember(story.id, settings.language) {
+        story.getAudioPath(settings.language)
+    }
+    val audioPaths = remember(story.id, settings.language) {
+        story.getAudioPaths(settings.language)
+    }
+    var currentImageIndex by remember(story.id, settings.language) { mutableStateOf(0) }
+    var isPlaying by remember(story.id, settings.language) { mutableStateOf(false) }
+    var mediaPlayer by remember(story.id, settings.language) { mutableStateOf<MediaPlayer?>(null) }
+    var maxPageViewedIndex by remember(story.id, settings.language) { mutableStateOf(-1) }
+    var completionReported by remember(story.id, settings.language) { mutableStateOf(false) }
+    val totalPages = imagePaths.size
 
-    val imagePaths = story.getImagePaths(settings.language)
-    val audioPath = story.getAudioPath(settings.language)
+    fun releaseMediaPlayer() {
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                stop()
+            }
+            release()
+        }
+        mediaPlayer = null
+        isPlaying = false
+    }
 
-    // Check if level is completed (reached the last image)
-    LaunchedEffect(currentImageIndex) {
-        if (currentImageIndex == imagePaths.size - 1) {
-            // Level completed - wait a bit then notify
-            kotlinx.coroutines.delay(500)
+    // Track progress toward star thresholds
+    LaunchedEffect(currentImageIndex, totalPages) {
+        if (totalPages <= 0) return@LaunchedEffect
+
+        if (currentImageIndex > maxPageViewedIndex) {
+            maxPageViewedIndex = currentImageIndex
+        }
+
+        if (!completionReported && currentImageIndex == totalPages - 1) {
+            completionReported = true
+            delay(500)
             onLevelComplete()
+        }
+    }
+
+    LaunchedEffect(maxPageViewedIndex, totalPages) {
+        if (totalPages > 0 && maxPageViewedIndex >= 0) {
+            val pagesViewed = maxPageViewedIndex + 1
+            val stars = calculateStarsForProgress(pagesViewed, totalPages)
+            onProgressUpdate(level, stars)
+        }
+    }
+
+    // Handle page changes for multi-audio stories
+    LaunchedEffect(currentImageIndex, hasMultiAudio) {
+        if (hasMultiAudio && isPlaying) {
+            // Release current audio and prepare new one for the current page
+            releaseMediaPlayer()
         }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            mediaPlayer?.apply {
-                if (isPlaying) {
-                    stop()
-                }
-                release()
-            }
-            mediaPlayer = null
-            isPlaying = false
+            releaseMediaPlayer()
         }
     }
 
@@ -78,10 +120,18 @@ fun LevelScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Level title
+                AssetIconButton(
+                    assetPath = "buttons/menu.png",
+                    contentDescription = "Roadmap",
+                    onClick = {
+                        releaseMediaPlayer()
+                        onRoadmapClick()
+                    },
+                    size = 48.dp
+                )
+
                 Text(
                     text = when (settings.language) {
                         "ar" -> "المستوى $level"
@@ -90,19 +140,22 @@ fun LevelScreen(
                     },
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextLight
+                    color = TextLight,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp),
+                    textAlign = TextAlign.Center
                 )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     AssetIconButton(
                         assetPath = "buttons/home.png",
                         contentDescription = "Home",
                         onClick = {
-                            mediaPlayer?.release()
-                            mediaPlayer = null
-                            isPlaying = false
+                            releaseMediaPlayer()
                             onHomeClick()
                         },
                         size = 48.dp
@@ -177,7 +230,13 @@ fun LevelScreen(
                 }
 
                 // Audio controls
-                audioPath?.let { path ->
+                val currentAudioPath = if (hasMultiAudio && audioPaths != null && currentImageIndex < audioPaths.size) {
+                    audioPaths[currentImageIndex]
+                } else {
+                    audioPath
+                }
+                
+                currentAudioPath?.let { path ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -209,16 +268,12 @@ fun LevelScreen(
                                                     isPlaying = false
                                                 }
                                                 setOnErrorListener { _, _, _ ->
-                                                    isPlaying = false
-                                                    mediaPlayer?.release()
-                                                    mediaPlayer = null
+                                                    releaseMediaPlayer()
                                                     true
                                                 }
                                             } catch (e: Exception) {
                                                 e.printStackTrace()
-                                                isPlaying = false
-                                                mediaPlayer?.release()
-                                                mediaPlayer = null
+                                                releaseMediaPlayer()
                                             }
                                         }
                                     } else {
@@ -243,19 +298,7 @@ fun LevelScreen(
 
                         IconButton(
                             onClick = {
-                                mediaPlayer?.apply {
-                                    if (isPlaying) {
-                                        stop()
-                                    }
-                                    try {
-                                        prepareAsync()
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                        release()
-                                        mediaPlayer = null
-                                    }
-                                    isPlaying = false
-                                }
+                                releaseMediaPlayer()
                             },
                             enabled = mediaPlayer != null,
                             modifier = Modifier
@@ -276,6 +319,18 @@ fun LevelScreen(
                 }
             }
         }
+    }
+}
+
+private fun calculateStarsForProgress(pagesViewed: Int, totalPages: Int): Int {
+    if (totalPages <= 0 || pagesViewed <= 0) return 0
+    val ratio = pagesViewed.coerceAtMost(totalPages).toFloat() / totalPages.toFloat()
+
+    return when {
+        ratio >= 1f -> 3
+        ratio >= 0.7f -> 2
+        ratio >= 0.3f -> 1
+        else -> 0
     }
 }
 

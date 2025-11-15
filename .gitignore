@@ -116,3 +116,5 @@ Desktop.ini
 *~
 
 assets/all/
+.specstory/
+.cursorindexingignore

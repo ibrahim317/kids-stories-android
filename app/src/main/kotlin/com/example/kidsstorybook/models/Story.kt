@@ -11,6 +11,9 @@ data class Story(
     val englishAudioPath: String? = null,
     val arabicAudioPath: String? = null,
     val turkishAudioPath: String? = null,
+    val englishAudioPaths: List<String>? = null,
+    val arabicAudioPaths: List<String>? = null,
+    val turkishAudioPaths: List<String>? = null,
     var isFavorite: Boolean = false
 ) {
     fun getTitle(language: String): String {
@@ -35,6 +38,18 @@ data class Story(
             "tr" -> turkishAudioPath
             else -> englishAudioPath
         }
+    }
+    
+    fun getAudioPaths(language: String): List<String>? {
+        return when (language) {
+            "ar" -> arabicAudioPaths
+            "tr" -> turkishAudioPaths
+            else -> englishAudioPaths
+        }
+    }
+    
+    fun hasMultipleAudioFiles(language: String): Boolean {
+        return getAudioPaths(language)?.isNotEmpty() == true
     }
 }
 

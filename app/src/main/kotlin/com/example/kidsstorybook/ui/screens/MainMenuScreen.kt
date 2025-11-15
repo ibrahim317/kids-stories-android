@@ -25,7 +25,10 @@ fun MainMenuScreen(
         modifier = modifier.fillMaxSize()
     ) {
         // Background
-        BackgroundImage(assetPath = "backgrounds/main_menu.png")
+        BackgroundImage(
+            assetPath = "backgrounds/main_menu.png",
+            modifier = Modifier.matchParentSize()
+        )
 
         // Content
         Column(
@@ -60,7 +63,7 @@ fun MainMenuScreen(
                 },
                 onClick = onPlayClick,
                 gradientColors = listOf(GradientYellowStart, GradientOrangeEnd),
-                fontSize = if (settings.ageGroup.name == "AGE_3_4") 28 else 24,
+                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .padding(vertical = 12.dp)
@@ -75,7 +78,7 @@ fun MainMenuScreen(
                 },
                 onClick = onSettingsClick,
                 gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                fontSize = if (settings.ageGroup.name == "AGE_3_4") 28 else 24,
+                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .padding(vertical = 12.dp)

@@ -33,6 +33,7 @@ fun LevelPin(
     isUnlocked: Boolean,
     isCompleted: Boolean,
     pinColor: PinColor,
+    stars: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -113,21 +114,59 @@ fun LevelPin(
             )
         }
 
-        // Stars for completed levels
-        if (isCompleted && isUnlocked) {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(context)
-                        .data("file:///android_asset/level_map_buttons/Button Blue/Stars/Full_stars.png")
-                        .crossfade(true)
-                        .build()
-                ),
-                contentDescription = "Completed",
+        if (isUnlocked) {
+            val displayedStars = when {
+                stars > 0 -> stars
+                isCompleted -> 3
+                else -> 0
+            }
+            StarsIndicator(
+                starCount = displayedStars.coerceIn(0, 3),
+                pinColor = pinColor,
                 modifier = Modifier
-                    .size(60.dp)
-                    .offset(y = 40.dp)
+                    .size(72.dp)
+                    .align(Alignment.BottomCenter)
+                    .offset(y = 36.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun StarsIndicator(
+    starCount: Int,
+    pinColor: PinColor,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val basePath = pinColor.assetPath.substringBeforeLast("/")
+    
+    // Determine which star image to use based on star count
+    val starImagePath = when (starCount) {
+        1 -> "$basePath/one_star.png"
+        2 -> "$basePath/two_stars.png"
+        3 -> {
+            // Blue uses lowercase, others use capitalized
+            if (pinColor == PinColor.BLUE) {
+                "$basePath/full_stars.png"
+            } else {
+                "$basePath/Full_stars.png"
+            }
+        }
+        else -> null // 0 stars - show nothing
+    }
+
+    if (starImagePath != null) {
+        Image(
+            painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(context)
+                    .data("file:///android_asset/$starImagePath")
+                    .crossfade(true)
+                    .build()
+            ),
+            contentDescription = "$starCount stars",
+            modifier = modifier
+        )
     }
 }
 

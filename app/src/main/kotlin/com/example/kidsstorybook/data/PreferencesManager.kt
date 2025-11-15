@@ -16,6 +16,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_AGE_GROUP = "age_group"
         private const val KEY_HIGHEST_UNLOCKED_LEVEL = "highest_unlocked_level"
         private const val KEY_COMPLETED_LEVELS = "completed_levels"
+        private const val KEY_LEVEL_STARS = "level_stars"
     }
 
     fun saveLanguage(language: String) {
@@ -31,11 +32,11 @@ class PreferencesManager(context: Context) {
     }
 
     fun getAgeGroup(): AgeGroup {
-        val name = prefs.getString(KEY_AGE_GROUP, AgeGroup.AGE_3_4.name)
+        val name = prefs.getString(KEY_AGE_GROUP, AgeGroup.AGE_2_4.name)
         return try {
-            AgeGroup.valueOf(name ?: AgeGroup.AGE_3_4.name)
+            AgeGroup.valueOf(name ?: AgeGroup.AGE_2_4.name)
         } catch (e: IllegalArgumentException) {
-            AgeGroup.AGE_3_4
+            AgeGroup.AGE_2_4
         }
     }
 
@@ -55,9 +56,13 @@ class PreferencesManager(context: Context) {
     }
 
     fun saveProgress(progress: GameProgress) {
+        val completedLevels =
+            progress.levelStars.filterValues { it >= GameProgress.MAX_STARS }.keys.map { it.toString() }.toSet()
+
         prefs.edit().apply {
             putInt(KEY_HIGHEST_UNLOCKED_LEVEL, progress.highestUnlockedLevel)
-            putStringSet(KEY_COMPLETED_LEVELS, progress.completedLevels.map { it.toString() }.toSet())
+            putStringSet(KEY_COMPLETED_LEVELS, completedLevels)
+            putString(KEY_LEVEL_STARS, serializeLevelStars(progress.levelStars))
             apply()
         }
     }
@@ -65,11 +70,19 @@ class PreferencesManager(context: Context) {
     fun getProgress(): GameProgress {
         val highestLevel = prefs.getInt(KEY_HIGHEST_UNLOCKED_LEVEL, 1)
         val completedLevelsStrings = prefs.getStringSet(KEY_COMPLETED_LEVELS, emptySet()) ?: emptySet()
-        val completedLevels = completedLevelsStrings.mapNotNull { it.toIntOrNull() }.toSet()
-        
+        val legacyStars = completedLevelsStrings.mapNotNull { it.toIntOrNull() }
+            .associateWith { GameProgress.MAX_STARS }
+        val serializedStars = prefs.getString(KEY_LEVEL_STARS, null)
+        val storedStars = deserializeLevelStars(serializedStars)
+
+        val mergedStars = buildMap {
+            putAll(legacyStars)
+            putAll(storedStars)
+        }
+
         return GameProgress(
             highestUnlockedLevel = highestLevel,
-            completedLevels = completedLevels
+            levelStars = mergedStars
         )
     }
 
@@ -77,8 +90,34 @@ class PreferencesManager(context: Context) {
         prefs.edit().apply {
             putInt(KEY_HIGHEST_UNLOCKED_LEVEL, 1)
             putStringSet(KEY_COMPLETED_LEVELS, emptySet())
+            remove(KEY_LEVEL_STARS)
             apply()
         }
+    }
+
+    private fun serializeLevelStars(levelStars: Map<Int, Int>): String {
+        if (levelStars.isEmpty()) return ""
+        return levelStars.entries.joinToString(separator = ",") { "${it.key}:${it.value}" }
+    }
+
+    private fun deserializeLevelStars(serialized: String?): Map<Int, Int> {
+        if (serialized.isNullOrBlank()) return emptyMap()
+        return serialized.split(",")
+            .mapNotNull { entry ->
+                val parts = entry.split(":")
+                if (parts.size == 2) {
+                    val level = parts[0].toIntOrNull()
+                    val stars = parts[1].toIntOrNull()
+                    if (level != null && stars != null) {
+                        level to stars.coerceIn(0, 3)
+                    } else {
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+            .toMap()
     }
 }
 

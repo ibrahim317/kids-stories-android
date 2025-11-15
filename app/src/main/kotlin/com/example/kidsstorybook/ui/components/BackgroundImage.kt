@@ -1,12 +1,10 @@
 package com.example.kidsstorybook.ui.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
 
 @Composable
@@ -16,15 +14,12 @@ fun BackgroundImage(
     contentScale: ContentScale = ContentScale.Crop
 ) {
     val context = LocalContext.current
-    val painter = rememberAsyncImagePainter(
+    
+    AsyncImage(
         model = ImageRequest.Builder(context)
             .data("file:///android_asset/$assetPath")
             .crossfade(true)
-            .build()
-    )
-
-    Image(
-        painter = painter,
+            .build(),
         contentDescription = "Background",
         modifier = modifier,
         contentScale = contentScale

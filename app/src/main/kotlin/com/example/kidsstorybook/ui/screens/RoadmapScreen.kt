@@ -16,6 +16,9 @@ import com.example.kidsstorybook.ui.components.AssetIconButton
 import com.example.kidsstorybook.ui.components.BackgroundImage
 import com.example.kidsstorybook.ui.components.LevelPin
 import com.example.kidsstorybook.ui.components.PinColor
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun RoadmapScreen(
@@ -124,13 +127,14 @@ private fun RoadmapSection(
 
     Box(
         modifier = Modifier
+            .background(color = Color.Red)
             .fillMaxWidth()
             .height(sectionHeight)
     ) {
         BackgroundImage(
             assetPath = backgroundAsset,
             contentScale = ContentScale.FillBounds,
-            modifier = Modifier.matchParentSize()
+            modifier = Modifier.fillMaxSize()
         )
 
         Column(

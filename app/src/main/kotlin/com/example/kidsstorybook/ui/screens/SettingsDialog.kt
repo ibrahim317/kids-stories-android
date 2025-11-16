@@ -1,7 +1,6 @@
 package com.example.kidsstorybook.ui.screens
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.kidsstorybook.models.AgeGroup
 import com.example.kidsstorybook.models.AppSettings
@@ -48,20 +47,17 @@ fun SettingsDialog(
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = modifier
-                .size(1200.dp)
+                .size(800.dp)
         ) {
             // Background image from assets
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(context)
-                        .data("file:///android_asset/settings_menu/menu.png")
-                        .size(coil.size.Size.ORIGINAL)
-                        .crossfade(false)
-                        .build()
-                ),
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data("file:///android_asset/settings_menu/menu.png")
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "Settings Menu Background",
                 modifier = Modifier
-                    .size(1200.dp)
+                    .size(800.dp)
                     .fillMaxSize(),
                 contentScale = ContentScale.FillBounds
             )
@@ -70,27 +66,25 @@ fun SettingsDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(40.dp),
+                    .padding(28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 // Title image from assets
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        model = ImageRequest.Builder(context)
-                            .data("file:///android_asset/settings_menu/title.png")
-                            .crossfade(true)
-                            .build()
-                    ),
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data("file:///android_asset/settings_menu/title.png")
+                        .crossfade(true)
+                        .build(),
                     contentDescription = "Settings Title",
                     modifier = Modifier
-                        .fillMaxWidth(0.7f)
+                        .fillMaxWidth(0.75f)
                         .zIndex(1f),
                     contentScale = ContentScale.Fit
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Age Group Section
                 Text(
@@ -99,14 +93,14 @@ fun SettingsDialog(
                         "tr" -> "Yaş Grubu"
                         else -> "Age Group"
                     },
-                    fontSize = 26.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF3D0066),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Age options - Vertical Stack
                 AgeGroup.values().forEach { ageGroup ->
@@ -115,12 +109,12 @@ fun SettingsDialog(
                         selected = selectedAgeGroup == ageGroup,
                         onClick = { selectedAgeGroup = ageGroup },
                         gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                        modifier = Modifier.fillMaxWidth(0.85f)
+                        modifier = Modifier.fillMaxWidth(0.9f)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Language Section
                 Text(
@@ -129,14 +123,14 @@ fun SettingsDialog(
                         "tr" -> "Dil"
                         else -> "Language"
                     },
-                    fontSize = 26.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF004D66),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Language options - Vertical Stack
                 KidsFriendlyOptionButton(
@@ -144,28 +138,28 @@ fun SettingsDialog(
                     selected = selectedLanguage == "ar",
                     onClick = { selectedLanguage = "ar" },
                     gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                    modifier = Modifier.fillMaxWidth(0.85f)
+                    modifier = Modifier.fillMaxWidth(0.9f)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 KidsFriendlyOptionButton(
                     text = "🇬🇧 English",
                     selected = selectedLanguage == "en",
                     onClick = { selectedLanguage = "en" },
                     gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                    modifier = Modifier.fillMaxWidth(0.85f)
+                    modifier = Modifier.fillMaxWidth(0.9f)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 KidsFriendlyOptionButton(
                     text = "🇹🇷 Türkçe",
                     selected = selectedLanguage == "tr",
                     onClick = { selectedLanguage = "tr" },
                     gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                    modifier = Modifier.fillMaxWidth(0.85f)
+                    modifier = Modifier.fillMaxWidth(0.9f)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Apply button - Green for clear CTA
                 SmallCartoonButton(
@@ -179,21 +173,21 @@ fun SettingsDialog(
                         onDismiss()
                     },
                     gradientColors = listOf(Color(0xFF4CAF50), Color(0xFF2E7D32)),
-                    modifier = Modifier.fillMaxWidth(0.75f)
+                    modifier = Modifier.fillMaxWidth(0.8f)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Close button
                 AssetIconButton(
                     assetPath = "buttons/home.png",
                     contentDescription = "Close",
                     onClick = onDismiss,
-                    size = 64.dp,
+                    size = 48.dp,
                     modifier = Modifier.zIndex(2f)
                 )
                 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
             }
         }
     }
@@ -221,15 +215,15 @@ private fun KidsFriendlyOptionButton(
 
     Box(
         modifier = modifier
-            .heightIn(min = 56.dp)
+            .heightIn(min = 48.dp)
             .scale(scale)
             .shadow(
-                elevation = if (selected) 16.dp else 6.dp,
-                shape = RoundedCornerShape(24.dp),
+                elevation = if (selected) 12.dp else 4.dp,
+                shape = RoundedCornerShape(20.dp),
                 clip = false,
                 spotColor = if (selected) Color(0x80FFD700) else Color.Black.copy(alpha = 0.25f)
             )
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(
                 brush = if (selected) {
                     Brush.verticalGradient(gradientColors)
@@ -242,7 +236,7 @@ private fun KidsFriendlyOptionButton(
                     Modifier.border(
                         width = 2.dp,
                         color = Color(0x80FFFFFF),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = RoundedCornerShape(20.dp)
                     )
                 } else {
                     Modifier
@@ -253,7 +247,7 @@ private fun KidsFriendlyOptionButton(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 20.dp, vertical = 18.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -263,16 +257,16 @@ private fun KidsFriendlyOptionButton(
             // Check mark emoji or circle for selection
             Text(
                 text = if (selected) "✓" else "○",
-                fontSize = 24.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (selected) Color.White else Color.Gray
             )
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             
             Text(
                 text = text,
-                fontSize = if (selected) 20.sp else 18.sp,
+                fontSize = if (selected) 18.sp else 16.sp,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
                 color = if (selected) TextLight else Color.DarkGray,
                 textAlign = TextAlign.Center

@@ -89,7 +89,7 @@ fun RoadmapScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -97,14 +97,14 @@ fun RoadmapScreen(
                 assetPath = "buttons/home.png",
                 contentDescription = "Home",
                 onClick = onHomeClick,
-                size = 56.dp
+                size = 40.dp
             )
 
             AssetIconButton(
                 assetPath = "buttons/settings.png",
                 contentDescription = "Settings",
                 onClick = onSettingsClick,
-                size = 56.dp
+                size = 40.dp
             )
         }
     }
@@ -127,7 +127,6 @@ private fun RoadmapSection(
 
     Box(
         modifier = Modifier
-            .background(color = Color.Red)
             .fillMaxWidth()
             .height(sectionHeight)
     ) {

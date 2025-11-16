@@ -4,7 +4,7 @@ import android.media.MediaPlayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,8 +24,10 @@ import coil.request.ImageRequest
 import com.example.kidsstorybook.models.AppSettings
 import com.example.kidsstorybook.models.Story
 import com.example.kidsstorybook.ui.components.AssetIconButton
+import com.example.kidsstorybook.ui.components.CartoonButton
+import com.example.kidsstorybook.ui.theme.FunGreen
+import com.example.kidsstorybook.ui.theme.LimeGreen
 import com.example.kidsstorybook.ui.theme.TextLight
-import kotlinx.coroutines.delay
 
 @Composable
 fun LevelScreen(
@@ -56,7 +58,6 @@ fun LevelScreen(
     var isPlaying by remember(story.id, settings.language) { mutableStateOf(false) }
     var mediaPlayer by remember(story.id, settings.language) { mutableStateOf<MediaPlayer?>(null) }
     var maxPageViewedIndex by remember(story.id, settings.language) { mutableStateOf(-1) }
-    var completionReported by remember(story.id, settings.language) { mutableStateOf(false) }
     val totalPages = imagePaths.size
 
     fun releaseMediaPlayer() {
@@ -70,18 +71,61 @@ fun LevelScreen(
         isPlaying = false
     }
 
+    fun playAudioForCurrentSlide() {
+        // Skip audio for cover page (first image, index 0)
+        if (currentImageIndex == 0) {
+            releaseMediaPlayer()
+            return
+        }
+        
+        val currentAudioPath = if (hasMultiAudio && audioPaths != null && currentImageIndex < audioPaths.size) {
+            // For multi-audio stories, audio index should be currentImageIndex - 1 (skip cover)
+            val audioIndex = currentImageIndex - 1
+            if (audioIndex >= 0 && audioIndex < audioPaths.size) {
+                audioPaths[audioIndex]
+            } else {
+                null
+            }
+        } else {
+            audioPath
+        }
+        
+        currentAudioPath?.let { path ->
+            releaseMediaPlayer()
+            mediaPlayer = MediaPlayer().apply {
+                try {
+                    val afd = context.assets.openFd(path)
+                    setDataSource(
+                        afd.fileDescriptor,
+                        afd.startOffset,
+                        afd.length
+                    )
+                    prepareAsync()
+                    setOnPreparedListener { mp ->
+                        mp.start()
+                        isPlaying = true
+                    }
+                    setOnCompletionListener {
+                        isPlaying = false
+                    }
+                    setOnErrorListener { _, _, _ ->
+                        releaseMediaPlayer()
+                        true
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    releaseMediaPlayer()
+                }
+            }
+        }
+    }
+
     // Track progress toward star thresholds
     LaunchedEffect(currentImageIndex, totalPages) {
         if (totalPages <= 0) return@LaunchedEffect
 
         if (currentImageIndex > maxPageViewedIndex) {
             maxPageViewedIndex = currentImageIndex
-        }
-
-        if (!completionReported && currentImageIndex == totalPages - 1) {
-            completionReported = true
-            delay(500)
-            onLevelComplete()
         }
     }
 
@@ -93,12 +137,9 @@ fun LevelScreen(
         }
     }
 
-    // Handle page changes for multi-audio stories
-    LaunchedEffect(currentImageIndex, hasMultiAudio) {
-        if (hasMultiAudio && isPlaying) {
-            // Release current audio and prepare new one for the current page
-            releaseMediaPlayer()
-        }
+    // Automatically play audio for the current slide when it changes
+    LaunchedEffect(currentImageIndex, hasMultiAudio, audioPath, audioPaths) {
+        playAudioForCurrentSlide()
     }
 
     DisposableEffect(Unit) {
@@ -229,13 +270,22 @@ fun LevelScreen(
                     )
                 }
 
-                // Audio controls
-                val currentAudioPath = if (hasMultiAudio && audioPaths != null && currentImageIndex < audioPaths.size) {
-                    audioPaths[currentImageIndex]
+                // Audio controls (skip cover page - index 0)
+                val currentAudioPath = if (currentImageIndex == 0) {
+                    null // No audio for cover page
+                } else if (hasMultiAudio && audioPaths != null) {
+                    // For multi-audio stories, audio index should be currentImageIndex - 1 (skip cover)
+                    val audioIndex = currentImageIndex - 1
+                    if (audioIndex >= 0 && audioIndex < audioPaths.size) {
+                        audioPaths[audioIndex]
+                    } else {
+                        null
+                    }
                 } else {
                     audioPath
                 }
                 
+                // Audio controls
                 currentAudioPath?.let { path ->
                     Row(
                         modifier = Modifier
@@ -251,31 +301,7 @@ fun LevelScreen(
                                     isPlaying = false
                                 } else {
                                     if (mediaPlayer == null) {
-                                        mediaPlayer = MediaPlayer().apply {
-                                            try {
-                                                val afd = context.assets.openFd(path)
-                                                setDataSource(
-                                                    afd.fileDescriptor,
-                                                    afd.startOffset,
-                                                    afd.length
-                                                )
-                                                prepareAsync()
-                                                setOnPreparedListener { mp ->
-                                                    mp.start()
-                                                    isPlaying = true
-                                                }
-                                                setOnCompletionListener {
-                                                    isPlaying = false
-                                                }
-                                                setOnErrorListener { _, _, _ ->
-                                                    releaseMediaPlayer()
-                                                    true
-                                                }
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                                releaseMediaPlayer()
-                                            }
-                                        }
+                                        playAudioForCurrentSlide()
                                     } else {
                                         mediaPlayer?.start()
                                         isPlaying = true
@@ -287,34 +313,36 @@ fun LevelScreen(
                                 .background(Color.White, shape = androidx.compose.foundation.shape.CircleShape)
                         ) {
                             Icon(
-                                if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
+                                if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = if (isPlaying) "Pause" else "Play",
                                 tint = Color.Black,
                                 modifier = Modifier.size(32.dp)
                             )
                         }
+                    }
+                }
 
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        IconButton(
+                // Finish button (only shown on last page)
+                if (currentImageIndex == totalPages - 1) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp, vertical = 16.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CartoonButton(
+                            text = when (settings.language) {
+                                "ar" -> "إنهاء"
+                                "tr" -> "Bitir"
+                                else -> "Finish"
+                            },
                             onClick = {
                                 releaseMediaPlayer()
+                                onLevelComplete()
                             },
-                            enabled = mediaPlayer != null,
-                            modifier = Modifier
-                                .size(64.dp)
-                                .background(
-                                    if (mediaPlayer != null) Color.White else Color.Gray,
-                                    shape = androidx.compose.foundation.shape.CircleShape
-                                )
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Stop",
-                                tint = if (mediaPlayer != null) Color.Black else Color.DarkGray,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
+                            gradientColors = listOf(LimeGreen, FunGreen),
+                            modifier = Modifier.fillMaxWidth(0.7f)
+                        )
                     }
                 }
             }

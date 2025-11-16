@@ -66,7 +66,7 @@ fun SettingsDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(28.dp),
+                    .padding(60.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(6.dp))

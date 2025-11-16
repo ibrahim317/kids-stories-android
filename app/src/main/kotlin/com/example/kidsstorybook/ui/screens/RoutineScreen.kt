@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -22,58 +23,48 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.kidsstorybook.models.AppSettings
-import com.example.kidsstorybook.models.Story
 import com.example.kidsstorybook.ui.components.AssetIconButton
-import com.example.kidsstorybook.ui.components.BackgroundImage
 import com.example.kidsstorybook.ui.components.BookFlipController
 import com.example.kidsstorybook.ui.components.BookFlipPage
-import com.example.kidsstorybook.ui.components.CartoonButton
-import com.example.kidsstorybook.ui.theme.FunGreen
-import com.example.kidsstorybook.ui.theme.LimeGreen
 import com.example.kidsstorybook.ui.theme.TextLight
 
 @Composable
-fun LevelScreen(
-    story: Story,
-    level: Int,
+fun RoutineScreen(
+    routineType: String, // "morning" or "evening"
     settings: AppSettings,
-    onLevelComplete: () -> Unit,
-    onRoadmapClick: () -> Unit,
+    onBackClick: () -> Unit,
     onHomeClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onProgressUpdate: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val imagePaths = remember(story.id, settings.language) {
-        story.getImagePaths(settings.language)
+    
+    // Get language code for asset paths
+    val languageCode = when (settings.language) {
+        "ar" -> "AR"
+        "tr" -> "TR"
+        else -> "EN"
     }
-    val hasMultiAudio = remember(story.id, settings.language) {
-        story.hasMultipleAudioFiles(settings.language)
+    
+    // Load routine images
+    val imagePaths = remember(routineType, languageCode) {
+        loadRoutineImages(context, routineType, languageCode)
     }
-    val audioPath = remember(story.id, settings.language) {
-        story.getAudioPath(settings.language)
+    
+    // Load routine audio files
+    val audioPaths = remember(routineType, languageCode) {
+        loadRoutineAudioFiles(context, routineType, languageCode)
     }
-    val audioPaths = remember(story.id, settings.language) {
-        story.getAudioPaths(settings.language)
-    }
-    var currentImageIndex by remember(story.id, settings.language) { mutableStateOf(0) }
-    var isPlaying by remember(story.id, settings.language) { mutableStateOf(false) }
-    var mediaPlayer by remember(story.id, settings.language) { mutableStateOf<MediaPlayer?>(null) }
-    var maxPageViewedIndex by remember(story.id, settings.language) { mutableStateOf(-1) }
+    
+    var currentImageIndex by remember { mutableStateOf(0) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var bookFlipController by remember { mutableStateOf<BookFlipController?>(null) }
     val totalPages = imagePaths.size
     
-    // Determine background based on level (5 levels per section)
-    val backgroundImage = remember(level) {
-        when ((level - 1) / 5) {
-            0 -> "backgrounds/main_menu.png"  // Levels 1-5
-            1 -> "backgrounds/bg-2.png"        // Levels 6-10
-            2 -> "backgrounds/bg-3.png"        // Levels 11-15
-            else -> "backgrounds/main_menu.png" // Default
-        }
-    }
-
+    // Background - only top part (sun part) for morning, bottom part (moon part) for evening
+    val backgroundImage = "backgrounds/day_and_night2.png"
+    
     fun releaseMediaPlayer() {
         mediaPlayer?.apply {
             if (isPlaying) {
@@ -84,26 +75,14 @@ fun LevelScreen(
         mediaPlayer = null
         isPlaying = false
     }
-
+    
     fun playAudioForCurrentSlide() {
-        // Skip audio for cover page (first image, index 0)
-        if (currentImageIndex == 0) {
+        if (currentImageIndex >= audioPaths.size) {
             releaseMediaPlayer()
             return
         }
         
-        val currentAudioPath = if (hasMultiAudio && audioPaths != null && currentImageIndex < audioPaths.size) {
-            // For multi-audio stories, audio index should be currentImageIndex - 1 (skip cover)
-            val audioIndex = currentImageIndex - 1
-            if (audioIndex >= 0 && audioIndex < audioPaths.size) {
-                audioPaths[audioIndex]
-            } else {
-                null
-            }
-        } else {
-            audioPath
-        }
-        
+        val currentAudioPath = audioPaths.getOrNull(currentImageIndex)
         currentAudioPath?.let { path ->
             releaseMediaPlayer()
             mediaPlayer = MediaPlayer().apply {
@@ -131,46 +110,64 @@ fun LevelScreen(
                     releaseMediaPlayer()
                 }
             }
+        } ?: run {
+            releaseMediaPlayer()
         }
     }
-
-    // Track progress toward star thresholds
-    LaunchedEffect(currentImageIndex, totalPages) {
-        if (totalPages <= 0) return@LaunchedEffect
-
-        if (currentImageIndex > maxPageViewedIndex) {
-            maxPageViewedIndex = currentImageIndex
-        }
-    }
-
-    LaunchedEffect(maxPageViewedIndex, totalPages) {
-        if (totalPages > 0 && maxPageViewedIndex >= 0) {
-            val pagesViewed = maxPageViewedIndex + 1
-            val stars = calculateStarsForProgress(pagesViewed, totalPages)
-            onProgressUpdate(level, stars)
-        }
-    }
-
+    
     // Automatically play audio for the current slide when it changes
-    LaunchedEffect(currentImageIndex, hasMultiAudio, audioPath, audioPaths) {
+    LaunchedEffect(currentImageIndex, audioPaths) {
         playAudioForCurrentSlide()
     }
-
+    
     DisposableEffect(Unit) {
         onDispose {
             releaseMediaPlayer()
         }
     }
-
+    
     Box(
         modifier = modifier.fillMaxSize()
     ) {
-        // Background image based on roadmap section
-        BackgroundImage(
-            assetPath = backgroundImage,
-            contentScale = ContentScale.Crop,
+        // Background image - show only top (sun) or bottom (moon) part
+        // For morning: show top half, for evening: show bottom half
+        Box(
             modifier = Modifier.fillMaxSize()
-        )
+        ) {
+            // Show full background image
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data("file:///android_asset/$backgroundImage")
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Background",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+            )
+            
+            // Overlay to mask the unwanted half with matching background colors
+            if (routineType == "morning") {
+                // Mask bottom half for morning (show only top/sun part)
+                // Use sky blue to match the day sky
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.5f)
+                        .align(Alignment.BottomCenter)
+                        .background(Color(0xFF87CEEB)) // Sky blue
+                )
+            } else {
+                // Mask top half for evening (show only bottom/moon part)
+                // Use dark blue to match the night sky
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.5f)
+                        .align(Alignment.TopCenter)
+                        .background(Color(0xFF191970)) // Midnight blue
+                )
+            }
+        }
         
         Column(
             modifier = Modifier.fillMaxSize()
@@ -184,19 +181,26 @@ fun LevelScreen(
             ) {
                 AssetIconButton(
                     assetPath = "buttons/menu.png",
-                    contentDescription = "Roadmap",
+                    contentDescription = "Back",
                     onClick = {
                         releaseMediaPlayer()
-                        onRoadmapClick()
+                        onBackClick()
                     },
                     size = 48.dp
                 )
-
+                
                 Text(
-                    text = when (settings.language) {
-                        "ar" -> "المستوى $level"
-                        "tr" -> "Seviye $level"
-                        else -> "Level $level"
+                    text = when {
+                        routineType == "morning" -> when (settings.language) {
+                            "ar" -> "الصباح"
+                            "tr" -> "Sabah"
+                            else -> "Morning"
+                        }
+                        else -> when (settings.language) {
+                            "ar" -> "المساء"
+                            "tr" -> "Akşam"
+                            else -> "Evening"
+                        }
                     },
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -206,7 +210,7 @@ fun LevelScreen(
                         .padding(horizontal = 12.dp),
                     textAlign = TextAlign.Center
                 )
-
+                
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -220,7 +224,7 @@ fun LevelScreen(
                         },
                         size = 48.dp
                     )
-
+                    
                     AssetIconButton(
                         assetPath = "buttons/settings.png",
                         contentDescription = "Settings",
@@ -229,8 +233,8 @@ fun LevelScreen(
                     )
                 }
             }
-
-            // Story content with book flip animation
+            
+            // Routine content with book flip animation
             if (imagePaths.isNotEmpty()) {
                 Box(
                     modifier = Modifier
@@ -251,8 +255,8 @@ fun LevelScreen(
                         modifier = Modifier.fillMaxSize()
                     )
                 }
-
-                // Navigation controls (alternative to swipe gestures)
+                
+                // Navigation controls
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -270,7 +274,7 @@ fun LevelScreen(
                         enabled = currentImageIndex > 0,
                         size = 64.dp
                     )
-
+                    
                     // Page indicator
                     Text(
                         text = "${currentImageIndex + 1}/${imagePaths.size}",
@@ -278,7 +282,7 @@ fun LevelScreen(
                         fontWeight = FontWeight.Bold,
                         color = TextLight
                     )
-
+                    
                     // Next button
                     AssetIconButton(
                         assetPath = "buttons/right-arrow.png",
@@ -291,28 +295,9 @@ fun LevelScreen(
                     )
                 }
             }
-
-            // Audio controls (skip cover page - index 0)
-            val currentAudioPath = if (imagePaths.isNotEmpty()) {
-                if (currentImageIndex == 0) {
-                    null // No audio for cover page
-                } else if (hasMultiAudio && audioPaths != null) {
-                    // For multi-audio stories, audio index should be currentImageIndex - 1 (skip cover)
-                    val audioIndex = currentImageIndex - 1
-                    if (audioIndex >= 0 && audioIndex < audioPaths.size) {
-                        audioPaths[audioIndex]
-                    } else {
-                        null
-                    }
-                } else {
-                    audioPath
-                }
-            } else {
-                null
-            }
             
-            // Audio controls - always show button but disable on first page
-            if (imagePaths.isNotEmpty()) {
+            // Audio controls
+            if (imagePaths.isNotEmpty() && currentImageIndex < audioPaths.size) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -334,7 +319,7 @@ fun LevelScreen(
                                 }
                             }
                         },
-                        enabled = currentAudioPath != null,
+                        enabled = currentImageIndex < audioPaths.size,
                         modifier = Modifier
                             .size(64.dp)
                             .background(Color.White, shape = androidx.compose.foundation.shape.CircleShape)
@@ -342,32 +327,8 @@ fun LevelScreen(
                         Icon(
                             if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = if (currentAudioPath != null) Color.Black else Color.Gray,
+                            tint = if (currentImageIndex < audioPaths.size) Color.Black else Color.Gray,
                             modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-
-                // Finish button (only shown on last page)
-                if (currentImageIndex == totalPages - 1) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        CartoonButton(
-                            text = when (settings.language) {
-                                "ar" -> "إنهاء"
-                                "tr" -> "Bitir"
-                                else -> "Finish"
-                            },
-                            onClick = {
-                                releaseMediaPlayer()
-                                onLevelComplete()
-                            },
-                            gradientColors = listOf(LimeGreen, FunGreen),
-                            modifier = Modifier.fillMaxWidth(0.7f)
                         )
                     }
                 }
@@ -376,15 +337,43 @@ fun LevelScreen(
     }
 }
 
-private fun calculateStarsForProgress(pagesViewed: Int, totalPages: Int): Int {
-    if (totalPages <= 0 || pagesViewed <= 0) return 0
-    val ratio = pagesViewed.coerceAtMost(totalPages).toFloat() / totalPages.toFloat()
-
-    return when {
-        ratio >= 1f -> 3
-        ratio >= 0.7f -> 2
-        ratio >= 0.3f -> 1
-        else -> 0
+// Helper function to load routine images
+private fun loadRoutineImages(context: android.content.Context, routineType: String, languageCode: String): List<String> {
+    val imagePaths = mutableListOf<String>()
+    val basePath = "routine/$routineType/$languageCode"
+    
+    try {
+        val files = context.assets.list(basePath) ?: emptyArray()
+        files
+            .filter { it.endsWith(".png") && !it.contains("sound") }
+            .sortedBy { it.toIntOrNull() ?: Int.MAX_VALUE }
+            .forEach { fileName ->
+                imagePaths.add("$basePath/$fileName")
+            }
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
+    
+    return imagePaths
+}
+
+// Helper function to load routine audio files
+private fun loadRoutineAudioFiles(context: android.content.Context, routineType: String, languageCode: String): List<String> {
+    val audioPaths = mutableListOf<String>()
+    val basePath = "routine/$routineType/$languageCode/sound"
+    
+    try {
+        val files = context.assets.list(basePath) ?: emptyArray()
+        files
+            .filter { it.endsWith(".wav") }
+            .sortedBy { it.removeSuffix(".wav").toIntOrNull() ?: Int.MAX_VALUE }
+            .forEach { fileName ->
+                audioPaths.add("$basePath/$fileName")
+            }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    
+    return audioPaths
 }
 

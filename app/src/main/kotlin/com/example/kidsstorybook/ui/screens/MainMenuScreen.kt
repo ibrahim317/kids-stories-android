@@ -18,6 +18,8 @@ import coil.request.ImageRequest
 fun MainMenuScreen(
     settings: AppSettings,
     onPlayClick: () -> Unit,
+    onAnimalsClick: () -> Unit,
+    onMorningEveningClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -62,6 +64,36 @@ fun MainMenuScreen(
                     else -> "Play"
                 },
                 onClick = onPlayClick,
+                gradientColors = listOf(GradientYellowStart, GradientOrangeEnd),
+                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .padding(vertical = 12.dp)
+            )
+
+            // Animals Button
+            CartoonButton(
+                text = when (settings.language) {
+                    "ar" -> "الحيوانات"
+                    "tr" -> "Hayvanlar"
+                    else -> "Animals"
+                },
+                onClick = onAnimalsClick,
+                gradientColors = listOf(GradientBlueStart, GradientBlueEnd),
+                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .padding(vertical = 12.dp)
+            )
+
+            // Morning and Evening Button
+            CartoonButton(
+                text = when (settings.language) {
+                    "ar" -> "الروتين"
+                    "tr" -> "Routine"
+                    else -> "Routine"
+                },
+                onClick = onMorningEveningClick,
                 gradientColors = listOf(GradientYellowStart, GradientOrangeEnd),
                 fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
                 modifier = Modifier

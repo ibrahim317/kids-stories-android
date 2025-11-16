@@ -15,6 +15,11 @@ import com.example.kidsstorybook.ui.screens.*
 sealed class Screen(val route: String) {
     object MainMenu : Screen("main_menu")
     object Roadmap : Screen("roadmap")
+    object Animals : Screen("animals")
+    object DayNightSelection : Screen("day_night_selection")
+    object Routine : Screen("routine/{routineType}") {
+        fun createRoute(routineType: String) = "routine/$routineType"
+    }
     object Level : Screen("level/{levelNumber}") {
         fun createRoute(levelNumber: Int) = "level/$levelNumber"
     }
@@ -57,6 +62,12 @@ fun AppNavigation() {
                 onPlayClick = {
                     navController.navigate(Screen.Roadmap.route)
                 },
+                onAnimalsClick = {
+                    navController.navigate(Screen.Animals.route)
+                },
+                onMorningEveningClick = {
+                    navController.navigate(Screen.DayNightSelection.route)
+                },
                 onSettingsClick = {
                     showSettings = true
                 }
@@ -70,6 +81,62 @@ fun AppNavigation() {
                 progress = progress,
                 onLevelClick = { level ->
                     navController.navigate(Screen.Level.createRoute(level))
+                },
+                onHomeClick = {
+                    navController.popBackStack(Screen.MainMenu.route, inclusive = false)
+                },
+                onSettingsClick = {
+                    showSettings = true
+                }
+            )
+        }
+
+        // Animals Screen
+        composable(Screen.Animals.route) {
+            AnimalsScreen(
+                settings = settings,
+                onHomeClick = {
+                    navController.popBackStack(Screen.MainMenu.route, inclusive = false)
+                },
+                onSettingsClick = {
+                    showSettings = true
+                }
+            )
+        }
+
+        // Day Night Selection Screen
+        composable(Screen.DayNightSelection.route) {
+            DayNightSelectionScreen(
+                settings = settings,
+                onMorningClick = {
+                    navController.navigate(Screen.Routine.createRoute("morning"))
+                },
+                onEveningClick = {
+                    navController.navigate(Screen.Routine.createRoute("evening"))
+                },
+                onHomeClick = {
+                    navController.popBackStack(Screen.MainMenu.route, inclusive = false)
+                },
+                onSettingsClick = {
+                    showSettings = true
+                }
+            )
+        }
+
+        // Routine Screen
+        composable(
+            route = Screen.Routine.route,
+            arguments = listOf(
+                navArgument("routineType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val routineType = backStackEntry.arguments?.getString("routineType") ?: "morning"
+            
+            RoutineScreen(
+                routineType = routineType,
+                settings = settings,
+                onBackClick = {
+                    navController.popBackStack()
                 },
                 onHomeClick = {
                     navController.popBackStack(Screen.MainMenu.route, inclusive = false)

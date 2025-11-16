@@ -48,7 +48,7 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.MainMenu.route
+        startDestination = Screen.Roadmap.route
     ) {
         // Main Menu Screen
         composable(Screen.MainMenu.route) {

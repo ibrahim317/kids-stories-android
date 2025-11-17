@@ -17,6 +17,7 @@ sealed class Screen(val route: String) {
     object Roadmap : Screen("roadmap")
     object Animals : Screen("animals")
     object DayNightSelection : Screen("day_night_selection")
+    object Comparisons : Screen("comparisons")
     object Routine : Screen("routine/{routineType}") {
         fun createRoute(routineType: String) = "routine/$routineType"
     }
@@ -68,6 +69,9 @@ fun AppNavigation() {
                 onMorningEveningClick = {
                     navController.navigate(Screen.DayNightSelection.route)
                 },
+                onComparisonsClick = {
+                    navController.navigate(Screen.Comparisons.route)
+                },
                 onSettingsClick = {
                     showSettings = true
                 }
@@ -113,6 +117,22 @@ fun AppNavigation() {
                 },
                 onEveningClick = {
                     navController.navigate(Screen.Routine.createRoute("evening"))
+                },
+                onHomeClick = {
+                    navController.popBackStack(Screen.MainMenu.route, inclusive = false)
+                },
+                onSettingsClick = {
+                    showSettings = true
+                }
+            )
+        }
+
+        // Comparisons Screen
+        composable(Screen.Comparisons.route) {
+            ComparisonsScreen(
+                settings = settings,
+                onBackClick = {
+                    navController.popBackStack()
                 },
                 onHomeClick = {
                     navController.popBackStack(Screen.MainMenu.route, inclusive = false)

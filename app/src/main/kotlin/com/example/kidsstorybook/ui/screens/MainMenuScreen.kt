@@ -5,6 +5,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.kidsstorybook.models.AgeGroup
 import com.example.kidsstorybook.models.AppSettings
 import com.example.kidsstorybook.ui.components.BackgroundImage
 import com.example.kidsstorybook.ui.components.CartoonButton
@@ -20,6 +21,7 @@ fun MainMenuScreen(
     onPlayClick: () -> Unit,
     onAnimalsClick: () -> Unit,
     onMorningEveningClick: () -> Unit,
+    onComparisonsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -56,65 +58,93 @@ fun MainMenuScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Play Button
-            CartoonButton(
-                text = when (settings.language) {
-                    "ar" -> "العب"
-                    "tr" -> "Oyna"
-                    else -> "Play"
-                },
-                onClick = onPlayClick,
-                gradientColors = listOf(GradientYellowStart, GradientOrangeEnd),
-                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .padding(vertical = 12.dp)
-            )
+            val isToddler = settings.ageGroup == AgeGroup.AGE_2_4
 
-            // Animals Button
-            CartoonButton(
-                text = when (settings.language) {
-                    "ar" -> "الحيوانات"
-                    "tr" -> "Hayvanlar"
-                    else -> "Animals"
-                },
-                onClick = onAnimalsClick,
-                gradientColors = listOf(GradientBlueStart, GradientBlueEnd),
-                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .padding(vertical = 12.dp)
-            )
+            if (isToddler) {
+                CartoonButton(
+                    text = when (settings.language) {
+                        "ar" -> "العب"
+                        "tr" -> "Oyna"
+                        else -> "Play"
+                    },
+                    onClick = onPlayClick,
+                    gradientColors = listOf(GradientYellowStart, GradientOrangeEnd),
+                    fontSize = 28,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(vertical = 12.dp)
+                )
 
-            // Morning and Evening Button
-            CartoonButton(
-                text = when (settings.language) {
-                    "ar" -> "الروتين"
-                    "tr" -> "Routine"
-                    else -> "Routine"
-                },
-                onClick = onMorningEveningClick,
-                gradientColors = listOf(GradientYellowStart, GradientOrangeEnd),
-                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .padding(vertical = 12.dp)
-            )
+                CartoonButton(
+                    text = when (settings.language) {
+                        "ar" -> "الإعدادات"
+                        "tr" -> "Ayarlar"
+                        else -> "Settings"
+                    },
+                    onClick = onSettingsClick,
+                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
+                    fontSize = 28,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(vertical = 12.dp)
+                )
+            } else {
+                CartoonButton(
+                    text = when (settings.language) {
+                        "ar" -> "الروتين"
+                        "tr" -> "Routine"
+                        else -> "Routine"
+                    },
+                    onClick = onMorningEveningClick,
+                    gradientColors = listOf(GradientYellowStart, GradientOrangeEnd),
+                    fontSize = 24,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(vertical = 12.dp)
+                )
 
-            // Settings Button
-            CartoonButton(
-                text = when (settings.language) {
-                    "ar" -> "الإعدادات"
-                    "tr" -> "Ayarlar"
-                    else -> "Settings"
-                },
-                onClick = onSettingsClick,
-                gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                fontSize = if (settings.ageGroup.name == "AGE_2_4") 28 else 24,
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .padding(vertical = 12.dp)
-            )
+                CartoonButton(
+                    text = when (settings.language) {
+                        "ar" -> "الحيوانات"
+                        "tr" -> "Hayvanlar"
+                        else -> "Animals"
+                    },
+                    onClick = onAnimalsClick,
+                    gradientColors = listOf(GradientBlueStart, GradientBlueEnd),
+                    fontSize = 24,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(vertical = 12.dp)
+                )
+
+                CartoonButton(
+                    text = when (settings.language) {
+                        "ar" -> "افعل ولا تفعل"
+                        "tr" -> "Yap & Yapma"
+                        else -> "Do & Don't"
+                    },
+                    onClick = onComparisonsClick,
+                    gradientColors = listOf(GradientOrangeStart, GradientOrangeEnd),
+                    fontSize = 24,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(vertical = 12.dp)
+                )
+
+                CartoonButton(
+                    text = when (settings.language) {
+                        "ar" -> "الإعدادات"
+                        "tr" -> "Ayarlar"
+                        else -> "Settings"
+                    },
+                    onClick = onSettingsClick,
+                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
+                    fontSize = 24,
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(vertical = 12.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
         }

@@ -15,7 +15,8 @@ enum class AgeGroup(val displayNameEn: String, val displayNameAr: String, val di
 
 data class AppSettings(
     val language: String = "en", // en, ar, tr
-    val ageGroup: AgeGroup = AgeGroup.AGE_2_4
+    val ageGroup: AgeGroup = AgeGroup.AGE_2_4,
+    val playerName: String = ""
 )
 
 

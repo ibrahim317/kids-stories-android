@@ -1,6 +1,7 @@
 package com.example.kidsstorybook.ui.screens
 
 import android.media.MediaPlayer
+import android.media.audiofx.LoudnessEnhancer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -59,6 +60,7 @@ fun RoutineScreen(
     var currentImageIndex by remember { mutableStateOf(0) }
     var isPlaying by remember { mutableStateOf(false) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var loudnessEnhancer by remember { mutableStateOf<LoudnessEnhancer?>(null) }
     var bookFlipController by remember { mutableStateOf<BookFlipController?>(null) }
     val totalPages = imagePaths.size
     
@@ -72,7 +74,9 @@ fun RoutineScreen(
             }
             release()
         }
+        loudnessEnhancer?.release()
         mediaPlayer = null
+        loudnessEnhancer = null
         isPlaying = false
     }
     
@@ -93,8 +97,18 @@ fun RoutineScreen(
                         afd.startOffset,
                         afd.length
                     )
+                    setVolume(1.0f, 1.0f) // Set maximum volume
                     prepareAsync()
                     setOnPreparedListener { mp ->
+                        // Apply loudness enhancement (boost by 15dB)
+                        try {
+                            loudnessEnhancer = LoudnessEnhancer(mp.audioSessionId).apply {
+                                setTargetGain(1500) // Boost by 15dB (1500 millibels)
+                                enabled = true
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                         mp.start()
                         isPlaying = true
                     }
@@ -115,9 +129,11 @@ fun RoutineScreen(
         }
     }
     
-    // Automatically play audio for the current slide when it changes
-    LaunchedEffect(currentImageIndex, audioPaths) {
-        playAudioForCurrentSlide()
+    // Stop any playing audio when the slide changes (no autoplay)
+    LaunchedEffect(currentImageIndex) {
+        if (mediaPlayer != null || isPlaying) {
+            releaseMediaPlayer()
+        }
     }
     
     DisposableEffect(Unit) {

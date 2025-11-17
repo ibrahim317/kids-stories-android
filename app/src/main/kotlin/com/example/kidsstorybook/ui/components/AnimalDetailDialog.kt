@@ -1,6 +1,7 @@
 package com.example.kidsstorybook.ui.components
 
 import android.media.MediaPlayer
+import android.media.audiofx.LoudnessEnhancer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -40,6 +41,7 @@ fun AnimalDetailDialog(
     val context = LocalContext.current
     var isPlaying by remember { mutableStateOf(false) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var loudnessEnhancer by remember { mutableStateOf<LoudnessEnhancer?>(null) }
     
     val audioPath = animal.getAudioPath(language)
     
@@ -50,7 +52,9 @@ fun AnimalDetailDialog(
             }
             release()
         }
+        loudnessEnhancer?.release()
         mediaPlayer = null
+        loudnessEnhancer = null
         isPlaying = false
     }
     
@@ -64,8 +68,18 @@ fun AnimalDetailDialog(
                     afd.startOffset,
                     afd.length
                 )
+                setVolume(1.0f, 1.0f) // Set maximum volume
                 prepareAsync()
                 setOnPreparedListener { mp ->
+                    // Apply loudness enhancement (boost by 1000 millibels = 10dB)
+                    try {
+                        loudnessEnhancer = LoudnessEnhancer(mp.audioSessionId).apply {
+                            setTargetGain(1500) // Boost by 15dB (1500 millibels)
+                            enabled = true
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                     mp.start()
                     isPlaying = true
                 }
@@ -87,6 +101,10 @@ fun AnimalDetailDialog(
         onDispose {
             releaseMediaPlayer()
         }
+    }
+
+    LaunchedEffect(audioPath) {
+        playAudio()
     }
     
     Dialog(

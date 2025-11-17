@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.kidsstorybook.models.AgeGroup
@@ -43,6 +45,15 @@ fun SettingsDialog(
     val context = LocalContext.current
     var selectedLanguage by remember { mutableStateOf(currentSettings.language) }
     var selectedAgeGroup by remember { mutableStateOf(currentSettings.ageGroup) }
+    var playerName by remember { mutableStateOf(currentSettings.playerName) }
+    var isNameError by remember { mutableStateOf(false) }
+    val isNameRequired = selectedAgeGroup == AgeGroup.AGE_5_6
+
+    LaunchedEffect(selectedAgeGroup) {
+        if (selectedAgeGroup != AgeGroup.AGE_5_6) {
+            isNameError = false
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Box(
@@ -114,6 +125,78 @@ fun SettingsDialog(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
+                if (selectedAgeGroup == AgeGroup.AGE_5_6) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val nameLabel = when (selectedLanguage) {
+                        "ar" -> "اسم الطفل"
+                        "tr" -> "Çocuğun Adı"
+                        else -> "Child Name"
+                    }
+                    val namePlaceholder = when (selectedLanguage) {
+                        "ar" -> "أدخل الاسم هنا"
+                        "tr" -> "İsmi buraya yazın"
+                        else -> "Type the name here"
+                    }
+                    val nameErrorMessage = when (selectedLanguage) {
+                        "ar" -> "الاسم مطلوب لهذه الفئة العمرية"
+                        "tr" -> "Bu yaş grubu için isim gerekli"
+                        else -> "Name is required for this age group"
+                    }
+
+                    Text(
+                        text = nameLabel,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF3D0066),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .padding(bottom = 8.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = playerName,
+                        onValueChange = {
+                            playerName = it.take(30)
+                            if (playerName.isNotBlank()) {
+                                isNameError = false
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        placeholder = {
+                            Text(text = namePlaceholder)
+                        },
+                        singleLine = true,
+                        isError = isNameError,
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                    )
+
+                    if (playerName.isNotBlank()) {
+                        Text(
+                            text = "${nameLabel}: ${playerName.trim()}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF004D66),
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .padding(top = 8.dp)
+                        )
+                    }
+
+                    if (isNameError) {
+                        Text(
+                            text = nameErrorMessage,
+                            fontSize = 14.sp,
+                            color = Color.Red,
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .padding(top = 4.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Language Section
@@ -168,8 +251,20 @@ fun SettingsDialog(
                         "tr" -> "Uygula"
                         else -> "Apply"
                     },
+                    enabled = !isNameRequired || playerName.isNotBlank(),
                     onClick = {
-                        onSettingsChange(AppSettings(selectedLanguage, selectedAgeGroup))
+                        val trimmedName = playerName.trim()
+                        if (isNameRequired && trimmedName.isBlank()) {
+                            isNameError = true
+                            return@SmallCartoonButton
+                        }
+                        onSettingsChange(
+                            AppSettings(
+                                language = selectedLanguage,
+                                ageGroup = selectedAgeGroup,
+                                playerName = trimmedName
+                            )
+                        )
                         onDismiss()
                     },
                     gradientColors = listOf(Color(0xFF4CAF50), Color(0xFF2E7D32)),

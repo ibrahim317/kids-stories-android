@@ -14,6 +14,7 @@ class PreferencesManager(context: Context) {
         private const val PREFS_NAME = "kids_game_prefs"
         private const val KEY_LANGUAGE = "language"
         private const val KEY_AGE_GROUP = "age_group"
+        private const val KEY_PLAYER_NAME = "player_name"
         private const val KEY_HIGHEST_UNLOCKED_LEVEL = "highest_unlocked_level"
         private const val KEY_COMPLETED_LEVELS = "completed_levels"
         private const val KEY_LEVEL_STARS = "level_stars"
@@ -44,6 +45,7 @@ class PreferencesManager(context: Context) {
         prefs.edit().apply {
             putString(KEY_LANGUAGE, settings.language)
             putString(KEY_AGE_GROUP, settings.ageGroup.name)
+            putString(KEY_PLAYER_NAME, settings.playerName)
             apply()
         }
     }
@@ -51,8 +53,17 @@ class PreferencesManager(context: Context) {
     fun getSettings(): AppSettings {
         return AppSettings(
             language = getLanguage(),
-            ageGroup = getAgeGroup()
+            ageGroup = getAgeGroup(),
+            playerName = getPlayerName()
         )
+    }
+
+    fun getPlayerName(): String {
+        return prefs.getString(KEY_PLAYER_NAME, "").orEmpty()
+    }
+
+    fun savePlayerName(name: String) {
+        prefs.edit().putString(KEY_PLAYER_NAME, name).apply()
     }
 
     fun saveProgress(progress: GameProgress) {

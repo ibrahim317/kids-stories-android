@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,15 +25,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.zIndex
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.kidsstorybook.models.AgeGroup
 import com.example.kidsstorybook.models.AppSettings
 import com.example.kidsstorybook.ui.components.AssetIconButton
+import com.example.kidsstorybook.ui.components.BackgroundImage
 import com.example.kidsstorybook.ui.components.SmallCartoonButton
 import com.example.kidsstorybook.ui.theme.*
 
@@ -55,10 +58,15 @@ fun SettingsDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
         Box(
-            modifier = modifier
-                .size(800.dp)
+            modifier = modifier.fillMaxSize()
         ) {
             // Background image from assets
             AsyncImage(
@@ -67,33 +75,50 @@ fun SettingsDialog(
                     .crossfade(true)
                     .build(),
                 contentDescription = "Settings Menu Background",
-                modifier = Modifier
-                    .size(800.dp)
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds
             )
 
-            // Content
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Top bar with navigation buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 26.dp, end = 26.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AssetIconButton(
+                        assetPath = "buttons/menu.png",
+                        contentDescription = "Back",
+                        onClick = onDismiss,
+                        size = 48.dp
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AssetIconButton(
+                            assetPath = "buttons/home.png",
+                            contentDescription = "Home",
+                            onClick = onDismiss,
+                            size = 48.dp
+                        )
+                    }
+                }
+
+            // Scrollable content
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(60.dp),
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 40.dp, vertical = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Title image from assets
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data("file:///android_asset/settings_menu/title.png")
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Settings Title",
-                    modifier = Modifier
-                        .fillMaxWidth(0.75f)
-                        .zIndex(1f),
-                    contentScale = ContentScale.Fit
-                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -105,6 +130,7 @@ fun SettingsDialog(
                         else -> "Age Group"
                     },
                     fontSize = 22.sp,
+                    fontFamily = FredokaFontFamily,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF3D0066),
                     modifier = Modifier.fillMaxWidth(),
@@ -147,6 +173,7 @@ fun SettingsDialog(
                     Text(
                         text = nameLabel,
                         fontSize = 20.sp,
+                        fontFamily = FredokaFontFamily,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF3D0066),
                         modifier = Modifier
@@ -175,6 +202,7 @@ fun SettingsDialog(
                         Text(
                             text = "${nameLabel}: ${playerName.trim()}",
                             fontSize = 16.sp,
+                            fontFamily = FredokaFontFamily,
                             fontWeight = FontWeight.SemiBold,
                             color = Color(0xFF004D66),
                             modifier = Modifier
@@ -207,6 +235,7 @@ fun SettingsDialog(
                         else -> "Language"
                     },
                     fontSize = 22.sp,
+                    fontFamily = FredokaFontFamily,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF004D66),
                     modifier = Modifier.fillMaxWidth(),
@@ -271,19 +300,9 @@ fun SettingsDialog(
                     modifier = Modifier.fillMaxWidth(0.8f)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Close button
-                AssetIconButton(
-                    assetPath = "buttons/home.png",
-                    contentDescription = "Close",
-                    onClick = onDismiss,
-                    size = 48.dp,
-                    modifier = Modifier.zIndex(2f)
-                )
-                
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(20.dp))
             }
+        }
         }
     }
 }
@@ -353,6 +372,7 @@ private fun KidsFriendlyOptionButton(
             Text(
                 text = if (selected) "✓" else "○",
                 fontSize = 20.sp,
+                fontFamily = FredokaFontFamily,
                 fontWeight = FontWeight.Bold,
                 color = if (selected) Color.White else Color.Gray
             )
@@ -362,6 +382,7 @@ private fun KidsFriendlyOptionButton(
             Text(
                 text = text,
                 fontSize = if (selected) 18.sp else 16.sp,
+                fontFamily = FredokaFontFamily,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
                 color = if (selected) TextLight else Color.DarkGray,
                 textAlign = TextAlign.Center

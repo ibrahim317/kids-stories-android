@@ -2,6 +2,8 @@ package com.example.kidsstorybook.navigation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,6 +42,8 @@ fun AppNavigation() {
     }
     var showSettings by remember { mutableStateOf(false) }
 
+    val layoutDirection = LayoutDirection.Ltr
+
     // Settings dialog
     if (showSettings) {
         SettingsDialog(
@@ -52,10 +56,11 @@ fun AppNavigation() {
         )
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.MainMenu.route
-    ) {
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+        NavHost(
+            navController = navController,
+            startDestination = Screen.MainMenu.route
+        ) {
         // Main Menu Screen
         composable(Screen.MainMenu.route) {
             MainMenuScreen(
@@ -224,6 +229,7 @@ fun AppNavigation() {
                     navController.popBackStack()
                 }
             }
+        }
         }
     }
 }

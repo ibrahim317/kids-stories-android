@@ -12,6 +12,13 @@ android {
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = [
+                admobAppId: (project.findProperty('ADMOB_APP_ID')
+                        ?: "ca-app-pub-4649566821640233~2127823127")
+        ]
+        def rewardedAdUnitId = project.findProperty('ADMOB_REWARDED_AD_UNIT_ID')
+                ?: "ca-app-pub-3940256099942544/5224354917"
+        buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"${rewardedAdUnitId}\"")
     }
     
     // Prevent compression of font files so they can be loaded as file descriptors
@@ -21,6 +28,7 @@ android {
     
     buildFeatures {
         compose true
+        buildConfig true
     }
     composeOptions {
         kotlinCompilerExtensionVersion compose_version
@@ -32,11 +40,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
 }
 
@@ -66,4 +74,7 @@ dependencies {
     
     // Page Curl Library for realistic book page turning
     implementation "io.github.oleksandrbalan:pagecurl:1.1.0"
+
+    // Google Mobile Ads
+    implementation "com.google.android.gms:play-services-ads:23.3.0"
 }

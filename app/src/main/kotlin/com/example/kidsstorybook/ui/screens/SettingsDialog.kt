@@ -79,48 +79,17 @@ fun SettingsDialog(
                 contentScale = ContentScale.FillBounds
             )
 
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // Top bar with navigation buttons
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 26.dp, end = 26.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AssetIconButton(
-                        assetPath = "buttons/menu.png",
-                        contentDescription = "Back",
-                        onClick = onDismiss,
-                        size = 48.dp
-                    )
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AssetIconButton(
-                            assetPath = "buttons/home.png",
-                            contentDescription = "Home",
-                            onClick = onDismiss,
-                            size = 48.dp
-                        )
-                    }
-                }
 
             // Scrollable content
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 40.dp, vertical = 20.dp),
+                    .padding(horizontal = 70.dp, vertical = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(120.dp))
 
                 // Age Group Section
                 Text(
@@ -302,7 +271,6 @@ fun SettingsDialog(
 
                 Spacer(modifier = Modifier.height(20.dp))
             }
-        }
         }
     }
 }

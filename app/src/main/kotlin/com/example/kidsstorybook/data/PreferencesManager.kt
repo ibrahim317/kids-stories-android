@@ -18,6 +18,8 @@ class PreferencesManager(context: Context) {
         private const val KEY_HIGHEST_UNLOCKED_LEVEL = "highest_unlocked_level"
         private const val KEY_COMPLETED_LEVELS = "completed_levels"
         private const val KEY_LEVEL_STARS = "level_stars"
+        private const val KEY_AD_UNLOCKED_LEVELS = "ad_unlocked_levels"
+        private const val KEY_AD_UNLOCKED_ANIMALS = "ad_unlocked_animals"
     }
 
     fun saveLanguage(language: String) {
@@ -102,8 +104,28 @@ class PreferencesManager(context: Context) {
             putInt(KEY_HIGHEST_UNLOCKED_LEVEL, 1)
             putStringSet(KEY_COMPLETED_LEVELS, emptySet())
             remove(KEY_LEVEL_STARS)
+            remove(KEY_AD_UNLOCKED_LEVELS)
+            remove(KEY_AD_UNLOCKED_ANIMALS)
             apply()
         }
+    }
+
+    fun getAdUnlockedLevels(): Set<Int> {
+        val stored = prefs.getStringSet(KEY_AD_UNLOCKED_LEVELS, emptySet()).orEmpty()
+        return stored.mapNotNull { it.toIntOrNull() }.toSet()
+    }
+
+    fun saveAdUnlockedLevels(levels: Set<Int>) {
+        val serialized = levels.map { it.toString() }.toSet()
+        prefs.edit().putStringSet(KEY_AD_UNLOCKED_LEVELS, serialized).apply()
+    }
+
+    fun getAdUnlockedAnimals(): Set<String> {
+        return prefs.getStringSet(KEY_AD_UNLOCKED_ANIMALS, emptySet()).orEmpty()
+    }
+
+    fun saveAdUnlockedAnimals(animalNames: Set<String>) {
+        prefs.edit().putStringSet(KEY_AD_UNLOCKED_ANIMALS, animalNames.toSet()).apply()
     }
 
     private fun serializeLevelStars(levelStars: Map<Int, Int>): String {

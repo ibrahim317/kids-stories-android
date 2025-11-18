@@ -21,12 +21,26 @@ import com.example.kidsstorybook.ui.theme.TextLight
 @Composable
 fun AnimalsScreen(
     settings: AppSettings,
+    lockedAnimals: Set<String>,
+    adUnlockedAnimals: Set<String>,
+    newlyUnlockedAnimal: String?,
+    onConsumeNewlyUnlockedAnimal: () -> Unit,
     onHomeClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onLockedAnimalClick: (Animal) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val animals = remember { AnimalRepository.getAllAnimals() }
     var selectedAnimal by remember { mutableStateOf<Animal?>(null) }
+
+    LaunchedEffect(newlyUnlockedAnimal) {
+        if (!newlyUnlockedAnimal.isNullOrBlank()) {
+            animals.find { it.name == newlyUnlockedAnimal }?.let { unlocked ->
+                selectedAnimal = unlocked
+            }
+            onConsumeNewlyUnlockedAnimal()
+        }
+    }
     
     Box(modifier = modifier.fillMaxSize()) {
         // Background
@@ -83,11 +97,25 @@ fun AnimalsScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(animals) { animal ->
+                    val requiresUnlock = lockedAnimals.contains(animal.name)
+                    val hasUnlocked = adUnlockedAnimals.contains(animal.name)
+                    val isLocked = requiresUnlock && !hasUnlocked
+
                     AnimalCard(
                         animal = animal,
                         language = settings.language,
+                        isLocked = isLocked,
+                        lockedCtaLabel = when (settings.language) {
+                            "ar" -> "شاهد إعلان"
+                            "tr" -> "Reklam İzle"
+                            else -> "Watch Ad"
+                        },
                         onClick = {
-                            selectedAnimal = animal
+                            if (isLocked) {
+                                onLockedAnimalClick(animal)
+                            } else {
+                                selectedAnimal = animal
+                            }
                         },
                         modifier = Modifier.fillMaxWidth()
                     )

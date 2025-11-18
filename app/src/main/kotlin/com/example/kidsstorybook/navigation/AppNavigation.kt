@@ -1,5 +1,6 @@
 package com.example.kidsstorybook.navigation
 
+import android.app.Activity
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -9,10 +10,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.kidsstorybook.data.AnimalRepository
 import com.example.kidsstorybook.data.PreferencesManager
 import com.example.kidsstorybook.data.StoryRepository
+import com.example.kidsstorybook.models.Animal
+import com.example.kidsstorybook.models.AnimalGatekeeper
 import com.example.kidsstorybook.models.GameProgress
+import com.example.kidsstorybook.models.LevelGatekeeper
 import com.example.kidsstorybook.ui.screens.*
+import com.example.kidsstorybook.ui.components.RewardedAdDialog
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.example.kidsstorybook.BuildConfig
 
 sealed class Screen(val route: String) {
     object MainMenu : Screen("main_menu")
@@ -28,19 +41,48 @@ sealed class Screen(val route: String) {
     }
 }
 
+private sealed interface RewardUnlockTarget {
+    data class Level(val level: Int) : RewardUnlockTarget
+    data class Animal(val animalName: String) : RewardUnlockTarget
+}
+
+private data class RewardDialogStrings(
+    val title: String,
+    val message: String,
+    val watchLabel: String,
+    val cancelLabel: String,
+    val loadingLabel: String
+)
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val preferencesManager = remember { PreferencesManager(context) }
     val totalLevels = remember { StoryRepository.getTotalLevels() }
+    val adLockedLevels = remember(totalLevels) {
+        LevelGatekeeper.lockedLevels(totalLevels)
+    }
+    val lockedAnimals = remember { AnimalGatekeeper.lockedAnimalNames() }
+    val animals = remember { AnimalRepository.getAllAnimals() }
 
     // App state
     var settings by remember { mutableStateOf(preferencesManager.getSettings()) }
     var progress by remember {
         mutableStateOf(preferencesManager.getProgress().clamp(totalLevels))
     }
+    var adUnlockedLevels by remember {
+        mutableStateOf(preferencesManager.getAdUnlockedLevels())
+    }
+    var adUnlockedAnimals by remember {
+        mutableStateOf(preferencesManager.getAdUnlockedAnimals())
+    }
     var showSettings by remember { mutableStateOf(false) }
+    var adDialogTarget by remember { mutableStateOf<RewardUnlockTarget?>(null) }
+    var isRewardLoading by remember { mutableStateOf(false) }
+    var rewardError by remember { mutableStateOf<String?>(null) }
+    var pendingLaunchLevel by remember { mutableStateOf<Int?>(null) }
+    var pendingAnimalSelection by remember { mutableStateOf<String?>(null) }
 
     val layoutDirection = LayoutDirection.Ltr
 
@@ -56,7 +98,16 @@ fun AppNavigation() {
         )
     }
 
+    val activity = context as? Activity
+
     CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+
+        LaunchedEffect(pendingLaunchLevel) {
+            val levelToLaunch = pendingLaunchLevel ?: return@LaunchedEffect
+            navController.navigate(Screen.Level.createRoute(levelToLaunch))
+            pendingLaunchLevel = null
+        }
+
         NavHost(
             navController = navController,
             startDestination = Screen.MainMenu.route
@@ -88,8 +139,16 @@ fun AppNavigation() {
             RoadmapScreen(
                 settings = settings,
                 progress = progress,
+                adUnlockedLevels = adUnlockedLevels,
+                adLockedLevels = adLockedLevels,
                 onLevelClick = { level ->
                     navController.navigate(Screen.Level.createRoute(level))
+                },
+                onLockedLevelClick = { level ->
+                    if (!isRewardLoading) {
+                        rewardError = null
+                        adDialogTarget = RewardUnlockTarget.Level(level)
+                    }
                 },
                 onHomeClick = {
                     navController.popBackStack(Screen.MainMenu.route, inclusive = false)
@@ -104,11 +163,21 @@ fun AppNavigation() {
         composable(Screen.Animals.route) {
             AnimalsScreen(
                 settings = settings,
+                lockedAnimals = lockedAnimals,
+                adUnlockedAnimals = adUnlockedAnimals,
+                newlyUnlockedAnimal = pendingAnimalSelection,
+                onConsumeNewlyUnlockedAnimal = { pendingAnimalSelection = null },
                 onHomeClick = {
                     navController.popBackStack(Screen.MainMenu.route, inclusive = false)
                 },
                 onSettingsClick = {
                     showSettings = true
+                },
+                onLockedAnimalClick = { animal ->
+                    if (!isRewardLoading) {
+                        rewardError = null
+                        adDialogTarget = RewardUnlockTarget.Animal(animal.name)
+                    }
                 }
             )
         }
@@ -232,7 +301,175 @@ fun AppNavigation() {
         }
         }
     }
+
+    val dialogStrings = adDialogTarget?.let { target ->
+        buildDialogStrings(target, settings.language, animals)
+    }
+
+    if (dialogStrings != null && adDialogTarget != null && activity != null) {
+        RewardedAdDialog(
+            title = dialogStrings.title,
+            message = dialogStrings.message,
+            watchLabel = dialogStrings.watchLabel,
+            cancelLabel = dialogStrings.cancelLabel,
+            loadingLabel = dialogStrings.loadingLabel,
+            isLoading = isRewardLoading,
+            errorMessage = rewardError,
+            onDismiss = {
+                if (!isRewardLoading) {
+                    rewardError = null
+                    adDialogTarget = null
+                }
+            },
+            onWatchClick = {
+                val target = adDialogTarget ?: return@RewardedAdDialog
+                if (!isRewardLoading) {
+                    rewardError = null
+                    showRewardedAd(
+                        activity = activity,
+                        onReward = {
+                            when (target) {
+                                is RewardUnlockTarget.Level -> {
+                                    val updated = (adUnlockedLevels + target.level).toSet()
+                                    adUnlockedLevels = updated
+                                    preferencesManager.saveAdUnlockedLevels(updated)
+                                    pendingLaunchLevel = target.level
+                                }
+                                is RewardUnlockTarget.Animal -> {
+                                    val updated = (adUnlockedAnimals + target.animalName).toSet()
+                                    adUnlockedAnimals = updated
+                                    preferencesManager.saveAdUnlockedAnimals(updated)
+                                    pendingAnimalSelection = target.animalName
+                                }
+                            }
+                        },
+                        onDismissFinished = {
+                            adDialogTarget = null
+                        },
+                        onError = { message ->
+                            rewardError = message
+                        },
+                        setLoading = { loading ->
+                            isRewardLoading = loading
+                        }
+                    )
+                }
+            }
+        )
+    }
 }
 
+private fun showRewardedAd(
+    activity: Activity,
+    onReward: () -> Unit,
+    onDismissFinished: () -> Unit,
+    onError: (String) -> Unit,
+    setLoading: (Boolean) -> Unit
+) {
+    setLoading(true)
+    val adRequest = AdRequest.Builder().build()
+    RewardedAd.load(
+        activity,
+        BuildConfig.REWARDED_AD_UNIT_ID,
+        adRequest,
+        object : RewardedAdLoadCallback() {
+            override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                setLoading(false)
+                onError(loadAdError.message ?: "Ad failed to load")
+            }
 
+            override fun onAdLoaded(ad: RewardedAd) {
+                ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        setLoading(false)
+                        onDismissFinished()
+                    }
 
+                    override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                        setLoading(false)
+                        onError(adError.message ?: "Ad failed to show")
+                    }
+                }
+
+                ad.show(activity) {
+                    onReward()
+                }
+            }
+        }
+    )
+}
+
+private fun buildDialogStrings(
+    target: RewardUnlockTarget,
+    language: String,
+    animals: List<Animal>
+): RewardDialogStrings {
+    return when (target) {
+        is RewardUnlockTarget.Level -> buildLevelDialogStrings(target.level, language)
+        is RewardUnlockTarget.Animal -> buildAnimalDialogStrings(target.animalName, language, animals)
+    }
+}
+
+private fun buildLevelDialogStrings(level: Int, language: String): RewardDialogStrings {
+    return when (language) {
+        "ar" -> RewardDialogStrings(
+            title = "افتح القصة $level",
+            message = "شاهد إعلانًا قصيرًا لفتح هذه القصة نهائيًا لطفلك.",
+            watchLabel = "شاهد الإعلان",
+            cancelLabel = "لاحقًا",
+            loadingLabel = "جارٍ تحميل الإعلان..."
+        )
+        "tr" -> RewardDialogStrings(
+            title = "$level. hikâyeyi aç",
+            message = "Bu hikâyeyi kalıcı olarak açmak için kısa bir reklam izle.",
+            watchLabel = "Reklamı İzle",
+            cancelLabel = "Daha sonra",
+            loadingLabel = "Reklam yükleniyor..."
+        )
+        else -> RewardDialogStrings(
+            title = "Unlock story $level",
+            message = "Watch a short ad to unlock this story forever.",
+            watchLabel = "Watch & Unlock",
+            cancelLabel = "Maybe later",
+            loadingLabel = "Loading ad..."
+        )
+    }
+}
+
+private fun buildAnimalDialogStrings(
+    animalName: String,
+    language: String,
+    animals: List<Animal>
+): RewardDialogStrings {
+    val displayName = animals.find { it.name == animalName }?.let { animal ->
+        when (language) {
+            "ar" -> animal.arabicName
+            "tr" -> animal.turkishName
+            else -> animal.englishName
+        }
+    } ?: animalName
+
+    return when (language) {
+        "ar" -> RewardDialogStrings(
+            title = "افتح $displayName",
+            message = "شاهد إعلانًا قصيرًا لفتح هذا الحيوان لطفلك.",
+            watchLabel = "شاهد الإعلان",
+            cancelLabel = "لاحقًا",
+            loadingLabel = "جارٍ تحميل الإعلان..."
+        )
+        "tr" -> RewardDialogStrings(
+            title = "$displayName hayvanını aç",
+            message = "Bu hayvanı kalıcı olarak açmak için kısa bir reklam izle.",
+            watchLabel = "Reklamı İzle",
+            cancelLabel = "Daha sonra",
+            loadingLabel = "Reklam yükleniyor..."
+        )
+        else -> RewardDialogStrings(
+            title = "Unlock $displayName",
+            message = "Watch a short ad to unlock this animal forever.",
+            watchLabel = "Watch & Unlock",
+            cancelLabel = "Maybe later",
+            loadingLabel = "Loading ad..."
+        )
+    }
+}

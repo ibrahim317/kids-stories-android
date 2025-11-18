@@ -2,23 +2,33 @@ package com.example.kidsstorybook.ui.screens
 
 import android.media.MediaPlayer
 import android.media.audiofx.LoudnessEnhancer
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -41,8 +51,11 @@ fun ComparisonsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val comparisonItems = remember(settings.language) {
-        ComparisonRepository.getComparisonItems(context, settings.language)
+    val comparisonGroups = remember(settings.language) {
+        ComparisonRepository.getComparisonGroups(context, settings.language)
+    }
+    val comparisonItems = remember(comparisonGroups) {
+        comparisonGroups.flatMap { it.children }
     }
     var selectedItem by remember { mutableStateOf<ComparisonItem?>(null) }
 
@@ -50,7 +63,7 @@ fun ComparisonsScreen(
         modifier = modifier.fillMaxSize()
     ) {
         BackgroundImage(
-            assetPath = "backgrounds/bg-2.png",
+            assetPath = "backgrounds/main_menu.png",
             modifier = Modifier.matchParentSize()
         )
 
@@ -83,20 +96,10 @@ fun ComparisonsScreen(
                     )
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(comparisonItems) { item ->
-                        ComparisonListItem(
-                            item = item,
-                            language = settings.language,
-                            onClick = { selectedItem = item }
-                        )
-                    }
-                }
+                ComparisonZigZagList(
+                    items = comparisonItems,
+                    onItemClick = { selectedItem = it }
+                )
             }
         }
 
@@ -124,9 +127,9 @@ private fun TopBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AssetIconButton(
-            assetPath = "buttons/menu.png",
-            contentDescription = "Back",
-            onClick = onBackClick,
+            assetPath = "buttons/home.png",
+            contentDescription = "Home",
+            onClick = onHomeClick,
             size = 48.dp
         )
 
@@ -145,108 +148,128 @@ private fun TopBar(
                 .padding(horizontal = 12.dp)
         )
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AssetIconButton(
-                assetPath = "buttons/home.png",
-                contentDescription = "Home",
-                onClick = onHomeClick,
-                size = 48.dp
-            )
+        AssetIconButton(
+            assetPath = "buttons/settings.png",
+            contentDescription = "Settings",
+            onClick = onSettingsClick,
+            size = 48.dp
+        )
+    }
+}
 
-            AssetIconButton(
-                assetPath = "buttons/settings.png",
-                contentDescription = "Settings",
-                onClick = onSettingsClick,
-                size = 48.dp
-            )
+@Composable
+private fun ComparisonZigZagList(
+    items: List<ComparisonItem>,
+    onItemClick: (ComparisonItem) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        itemsIndexed(items) { index, item ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (index % 2 == 0) {
+                    ComparisonItemCard(
+                        item = item,
+                        onClick = { onItemClick(item) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Box(modifier = Modifier.weight(1f))
+                } else {
+                    Box(modifier = Modifier.weight(1f))
+                    ComparisonItemCard(
+                        item = item,
+                        onClick = { onItemClick(item) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ComparisonListItem(
+private fun ComparisonItemCard(
     item: ComparisonItem,
-    language: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        color = Color.White.copy(alpha = 0.9f),
-        tonalElevation = 4.dp,
-        shadowElevation = 6.dp
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "comparison_card_scale"
+    )
+
+    val glassBackground = Color(0xFFFAFAFA).copy(alpha = 0.8f)
+    val glassBorder = Color.White.copy(alpha = 0.6f)
+
+    Box(
+        modifier = modifier
+            .aspectRatio(0.95f)
+            .scale(scale)
+            .shadow(
+                elevation = if (isPressed) 4.dp else 8.dp,
+                shape = RoundedCornerShape(28.dp),
+                clip = false
+            )
+            .clip(RoundedCornerShape(28.dp))
+            .background(glassBackground)
+            .border(
+                width = 1.5.dp,
+                color = glassBorder,
+                shape = RoundedCornerShape(28.dp)
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Image thumbnail
+            Text(
+                text = item.title,
+                color = Color.Black,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            val thumbnailPath = item.thumbnailPath ?: item.imagePath
+
             AsyncImage(
                 model = ImageRequest.Builder(context)
-                    .data("file:///android_asset/${item.imagePath}")
+                    .data("file:///android_asset/$thumbnailPath")
                     .crossfade(true)
                     .build(),
                 contentDescription = item.title,
-                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(100.dp)
-                    .background(Color(0xFFF5F0EA), RoundedCornerShape(16.dp))
+                    .fillMaxWidth(0.8f)
+                    .aspectRatio(1f)
+                    .clip(CircleShape)
+                    .border(
+                        width = 4.dp,
+                        color = Color.White.copy(alpha = 0.8f),
+                        shape = CircleShape
+                    ),
+                contentScale = ContentScale.Crop
             )
-            
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
-            ) {
-                Text(
-                    text = item.title,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF4A3F35)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Do section
-                Text(
-                    text = getDoLabel(language),
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B806A),
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = item.doText,
-                    color = Color(0xFF333333),
-                    fontSize = 13.sp,
-                    maxLines = 2
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Don't section
-                Text(
-                    text = getDontLabel(language),
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFB3261E),
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = item.dontText,
-                    color = Color(0xFF333333),
-                    fontSize = 13.sp,
-                    maxLines = 2
-                )
-            }
         }
     }
 }
@@ -260,7 +283,6 @@ private fun ComparisonDetailDialog(
     val context = LocalContext.current
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var loudnessEnhancer by remember { mutableStateOf<LoudnessEnhancer?>(null) }
-    var isPlaying by remember { mutableStateOf(false) }
 
     fun releaseMediaPlayer() {
         mediaPlayer?.let { player ->
@@ -274,7 +296,6 @@ private fun ComparisonDetailDialog(
         loudnessEnhancer?.release()
         mediaPlayer = null
         loudnessEnhancer = null
-        isPlaying = false
     }
 
     fun playAudio() {
@@ -297,7 +318,6 @@ private fun ComparisonDetailDialog(
                         e.printStackTrace()
                     }
                     player.start()
-                    isPlaying = true
                 }
                 setOnCompletionListener {
                     releaseMediaPlayer()
@@ -320,16 +340,8 @@ private fun ComparisonDetailDialog(
         }
     }
 
-    val playLabel = when (language) {
-        "ar" -> "تشغيل الصوت"
-        "tr" -> "Sesi oynat"
-        else -> "Play sound"
-    }
-
-    val stopLabel = when (language) {
-        "ar" -> "إيقاف الصوت"
-        "tr" -> "Sesi durdur"
-        else -> "Stop sound"
+    LaunchedEffect(item.id) {
+        playAudio()
     }
 
     val closeLabel = when (language) {
@@ -381,60 +393,15 @@ private fun ComparisonDetailDialog(
                         .background(Color(0xFFF5F0EA), RoundedCornerShape(20.dp))
                 )
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = getDoLabel(language),
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1B806A)
-                    )
-                    Text(
-                        text = item.doText,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF333333)
-                    )
-
-                    Text(
-                        text = getDontLabel(language),
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFB3261E),
-                        modifier = Modifier.padding(top = 12.dp)
-                    )
-                    Text(
-                        text = item.dontText,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF333333)
-                    )
-                }
-
-                Row(
+                SmallCartoonButton(
+                    text = closeLabel,
+                    onClick = {
+                        releaseMediaPlayer()
+                        onDismiss()
+                    },
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    SmallCartoonButton(
-                        text = if (isPlaying) stopLabel else playLabel,
-                        onClick = {
-                            if (isPlaying) {
-                                releaseMediaPlayer()
-                            } else {
-                                playAudio()
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        enabled = item.audioPath != null
-                    )
-
-                    SmallCartoonButton(
-                        text = closeLabel,
-                        onClick = {
-                            releaseMediaPlayer()
-                            onDismiss()
-                        },
-                        modifier = Modifier.weight(1f),
-                        gradientColors = listOf(Color(0xFF8E50D7), Color(0xFF6E39B1))
-                    )
-                }
+                    gradientColors = listOf(Color(0xFF8E50D7), Color(0xFF6E39B1))
+                )
 
                 if (item.audioPath == null) {
                     Text(
@@ -447,22 +414,6 @@ private fun ComparisonDetailDialog(
                 }
             }
         }
-    }
-}
-
-private fun getDoLabel(language: String): String {
-    return when (language) {
-        "ar" -> "افعل"
-        "tr" -> "Yap"
-        else -> "Do"
-    }
-}
-
-private fun getDontLabel(language: String): String {
-    return when (language) {
-        "ar" -> "لا تفعل"
-        "tr" -> "Yapma"
-        else -> "Don't"
     }
 }
 

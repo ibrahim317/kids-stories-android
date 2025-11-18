@@ -1,7 +1,10 @@
 package com.example.kidsstorybook.data
 
 import android.content.Context
+import com.example.kidsstorybook.models.ComparisonCategory
+import com.example.kidsstorybook.models.ComparisonGroup
 import com.example.kidsstorybook.models.ComparisonItem
+import java.util.LinkedHashSet
 
 object ComparisonRepository {
 
@@ -274,14 +277,133 @@ object ComparisonRepository {
                 resolveAssetPath(context, "comparisons/$langKey/sound", "$id.wav")
                     ?: resolveAssetPath(context, "comparisons/en/sound", "$id.wav")
 
+            val thumbnailPath = resolveThumbnailImage(context, id) ?: imagePath
+
+            val category = when (id) {
+                "parents", "brothers", "sisters", "grand_father", "grand_mother" -> ComparisonCategory.FAMILY
+                "birthday", "bus", "dining_table", "friend_house", "house", "in_the_street", "mall", "school" -> ComparisonCategory.PLACES
+                else -> ComparisonCategory.OTHER
+            }
+
             ComparisonItem(
                 id = id,
                 title = content.title,
                 doText = content.doText,
                 dontText = content.dontText,
                 imagePath = imagePath,
-                audioPath = audioPath
+                audioPath = audioPath,
+                category = category,
+                thumbnailPath = thumbnailPath
             )
+        }
+    }
+
+    fun getComparisonGroups(context: Context, language: String): List<ComparisonGroup> {
+        val items = getComparisonItems(context, language)
+        val langKey = when (language) {
+            "ar" -> "ar"
+            "tr" -> "tr"
+            else -> "en"
+        }
+
+        val groups = mutableListOf<ComparisonGroup>()
+
+        // Family group
+        val familyItems = items.filter { it.category == ComparisonCategory.FAMILY }
+        if (familyItems.isNotEmpty()) {
+            val familyImage = resolveAssetPath(context, "comparisons/$langKey", "family.png")
+                ?: resolveAssetPath(context, "comparisons/en", "family.png")
+                ?: familyItems.first().imagePath
+
+            val familyTitle = when (language) {
+                "ar" -> "العائلة"
+                "tr" -> "Aile"
+                else -> "Family"
+            }
+            groups.add(
+                ComparisonGroup(
+                    id = "family",
+                    title = familyTitle,
+                    imagePath = familyImage,
+                    category = ComparisonCategory.FAMILY,
+                    children = familyItems
+                )
+            )
+        }
+
+        // Places group
+        val placesItems = items.filter { it.category == ComparisonCategory.PLACES }
+        if (placesItems.isNotEmpty()) {
+            val placesImage = resolveAssetPath(context, "comparisons/$langKey", "places.png")
+                ?: resolveAssetPath(context, "comparisons/en", "places.png")
+                ?: placesItems.first().imagePath
+
+            val placesTitle = when (language) {
+                "ar" -> "الأماكن"
+                "tr" -> "Yerler"
+                else -> "Places"
+            }
+            groups.add(
+                ComparisonGroup(
+                    id = "places",
+                    title = placesTitle,
+                    imagePath = placesImage,
+                    category = ComparisonCategory.PLACES,
+                    children = placesItems
+                )
+            )
+        }
+
+        // Other group
+        val otherItems = items.filter { it.category == ComparisonCategory.OTHER }
+        if (otherItems.isNotEmpty()) {
+            val otherImage = resolveAssetPath(context, "comparisons/$langKey", "other.png")
+                ?: resolveAssetPath(context, "comparisons/en", "other.png")
+                ?: otherItems.first().imagePath
+
+            val otherTitle = when (language) {
+                "ar" -> "أخرى"
+                "tr" -> "Diğer"
+                else -> "Other"
+            }
+            groups.add(
+                ComparisonGroup(
+                    id = "other",
+                    title = otherTitle,
+                    imagePath = otherImage,
+                    category = ComparisonCategory.OTHER,
+                    children = otherItems
+                )
+            )
+        }
+
+        return groups
+    }
+
+    private fun resolveThumbnailImage(
+        context: Context,
+        id: String
+    ): String? {
+        return try {
+            val files = context.assets.list("comparisons")?.toSet() ?: return null
+            val candidates = LinkedHashSet<String>().apply {
+                add(id)
+                add(id.replace("_", ""))
+                if (id.endsWith("s")) {
+                    val singular = id.dropLast(1)
+                    add(singular)
+                    add(singular.replace("_", ""))
+                }
+            }.filter { it.isNotBlank() }
+
+            val fileCandidates = candidates.flatMap { base ->
+                listOf("$base.jpg", "$base.png")
+            }
+
+            val match = fileCandidates.firstOrNull { files.contains(it) } ?: return null
+            "comparisons/$match"
+        } catch (e: Exception) {
+            null
         }
     }
 

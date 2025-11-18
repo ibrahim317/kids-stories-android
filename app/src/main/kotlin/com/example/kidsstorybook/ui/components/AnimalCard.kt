@@ -8,6 +8,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -31,8 +36,10 @@ import com.example.kidsstorybook.ui.theme.TextDark
 fun AnimalCard(
     animal: Animal,
     language: String,
+    isLocked: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    lockedCtaLabel: String? = null
 ) {
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -83,6 +90,13 @@ fun AnimalCard(
             verticalArrangement = Arrangement.Center
         ) {
             // Animal Image
+            val saturation = if (isLocked) 0f else 1f
+            val colorMatrix = remember(saturation) {
+                ColorMatrix().apply {
+                    setToSaturation(saturation)
+                }
+            }
+
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data("file:///android_asset/${animal.imagePath}")
@@ -93,7 +107,8 @@ fun AnimalCard(
                     .fillMaxWidth(0.85f)
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.colorMatrix(colorMatrix)
             )
             
             Spacer(modifier = Modifier.height(6.dp))
@@ -103,9 +118,32 @@ fun AnimalCard(
                 text = animal.getDisplayName(language),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark,
+                color = if (isLocked) TextDark.copy(alpha = 0.4f) else TextDark,
                 textAlign = TextAlign.Center,
                 maxLines = 1
+            )
+
+            if (isLocked) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = lockedCtaLabel ?: "Watch Ad",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF555555),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        if (isLocked) {
+            Icon(
+                imageVector = Icons.Filled.Lock,
+                contentDescription = null,
+                tint = Color(0xFF555555),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .size(28.dp)
             )
         }
     }

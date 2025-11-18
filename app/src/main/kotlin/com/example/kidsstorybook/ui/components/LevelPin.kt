@@ -35,7 +35,9 @@ fun LevelPin(
     pinColor: PinColor,
     stars: Int,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLockedClick: (() -> Unit)? = null,
+    lockedCtaLabel: String? = null
 ) {
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -63,6 +65,8 @@ fun LevelPin(
         label = "float_offset"
     )
 
+    val canInteract = isUnlocked || onLockedClick != null
+
     Box(
         modifier = modifier
             .size(120.dp)
@@ -71,8 +75,14 @@ fun LevelPin(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                enabled = isUnlocked,
-                onClick = onClick
+                enabled = canInteract,
+                onClick = {
+                    if (isUnlocked) {
+                        onClick()
+                    } else {
+                        onLockedClick?.invoke()
+                    }
+                }
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -103,6 +113,17 @@ fun LevelPin(
                     .size(48.dp)
                     .offset(y = (-8).dp)
             )
+            if (lockedCtaLabel != null) {
+                Text(
+                    text = lockedCtaLabel,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = 12.dp)
+                )
+            }
         } else {
             // Level number
             Text(

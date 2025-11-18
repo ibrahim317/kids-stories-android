@@ -22,9 +22,12 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun RoadmapScreen(
-    @Suppress("UNUSED_PARAMETER") settings: AppSettings,
+    settings: AppSettings,
     progress: GameProgress,
+    adUnlockedLevels: Set<Int>,
+    adLockedLevels: Set<Int>,
     onLevelClick: (Int) -> Unit,
+    onLockedLevelClick: (Int) -> Unit,
     onHomeClick: () -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -47,6 +50,14 @@ fun RoadmapScreen(
         }.filter { it.second.isNotEmpty() }
     }
     val sectionsForDisplay = remember(sectionsAscending) { sectionsAscending.reversed() }
+
+    val watchAdLabel = remember(settings.language) {
+        when (settings.language) {
+            "ar" -> "شاهد إعلان"
+            "tr" -> "Reklam İzle"
+            else -> "Watch Ad"
+        }
+    }
     
     val scrollState = rememberScrollState()
     
@@ -79,8 +90,12 @@ fun RoadmapScreen(
                     backgroundAsset = backgroundAsset,
                     levels = levels,
                     progress = progress,
+                    adUnlockedLevels = adUnlockedLevels,
+                    adLockedLevels = adLockedLevels,
+                    lockedCtaLabel = watchAdLabel,
                     roadmapColor = roadmapColor,
-                    onLevelClick = onLevelClick
+                    onLevelClick = onLevelClick,
+                    onLockedLevelClick = onLockedLevelClick
                 )
             }
         }
@@ -115,8 +130,12 @@ private fun RoadmapSection(
     backgroundAsset: String,
     levels: List<Int>,
     progress: GameProgress,
+    adUnlockedLevels: Set<Int>,
+    adLockedLevels: Set<Int>,
+    lockedCtaLabel: String,
     roadmapColor: PinColor,
-    onLevelClick: (Int) -> Unit
+    onLevelClick: (Int) -> Unit,
+    onLockedLevelClick: (Int) -> Unit
 ) {
     if (levels.isEmpty()) return
 
@@ -145,7 +164,11 @@ private fun RoadmapSection(
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             levels.sortedDescending().forEach { level ->
-                val isUnlocked = progress.isLevelUnlocked(level)
+                val baseUnlocked = progress.isLevelUnlocked(level)
+                val requiresAdUnlock = adLockedLevels.contains(level)
+                val hasAdUnlock = adUnlockedLevels.contains(level)
+                val isUnlocked = baseUnlocked && (!requiresAdUnlock || hasAdUnlock)
+                val shouldPromptForAd = baseUnlocked && requiresAdUnlock && !hasAdUnlock
                 val isCompleted = progress.isLevelCompleted(level)
                 val stars = progress.getStarsForLevel(level)
 
@@ -167,6 +190,12 @@ private fun RoadmapSection(
                             pinColor = roadmapColor,
                             stars = stars,
                             onClick = { onLevelClick(level) },
+                            onLockedClick = if (shouldPromptForAd) {
+                                { onLockedLevelClick(level) }
+                            } else {
+                                null
+                            },
+                            lockedCtaLabel = if (shouldPromptForAd) lockedCtaLabel else null,
                             modifier = Modifier.padding(
                                 start = if (level % 2 == 0) 32.dp else 0.dp,
                                 end = if (level % 2 == 1) 32.dp else 0.dp

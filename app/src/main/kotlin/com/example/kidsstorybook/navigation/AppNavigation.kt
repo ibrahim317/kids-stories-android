@@ -11,10 +11,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.kidsstorybook.data.AnimalRepository
+import com.example.kidsstorybook.data.ComparisonRepository
 import com.example.kidsstorybook.data.PreferencesManager
 import com.example.kidsstorybook.data.StoryRepository
 import com.example.kidsstorybook.models.Animal
 import com.example.kidsstorybook.models.AnimalGatekeeper
+import com.example.kidsstorybook.models.ComparisonGatekeeper
+import com.example.kidsstorybook.models.ComparisonItem
 import com.example.kidsstorybook.models.GameProgress
 import com.example.kidsstorybook.models.LevelGatekeeper
 import com.example.kidsstorybook.ui.screens.*
@@ -44,6 +47,7 @@ sealed class Screen(val route: String) {
 private sealed interface RewardUnlockTarget {
     data class Level(val level: Int) : RewardUnlockTarget
     data class Animal(val animalName: String) : RewardUnlockTarget
+    data class Comparison(val comparisonId: String) : RewardUnlockTarget
 }
 
 private data class RewardDialogStrings(
@@ -64,10 +68,14 @@ fun AppNavigation() {
         LevelGatekeeper.lockedLevels(totalLevels)
     }
     val lockedAnimals = remember { AnimalGatekeeper.lockedAnimalNames() }
+    val lockedComparisons = remember { ComparisonGatekeeper.lockedComparisonIds() }
     val animals = remember { AnimalRepository.getAllAnimals() }
+    var settings by remember { mutableStateOf(preferencesManager.getSettings()) }
+    val comparisonItems = remember(settings.language) {
+        ComparisonRepository.getComparisonItems(context, settings.language)
+    }
 
     // App state
-    var settings by remember { mutableStateOf(preferencesManager.getSettings()) }
     var progress by remember {
         mutableStateOf(preferencesManager.getProgress().clamp(totalLevels))
     }
@@ -77,12 +85,16 @@ fun AppNavigation() {
     var adUnlockedAnimals by remember {
         mutableStateOf(preferencesManager.getAdUnlockedAnimals())
     }
+    var adUnlockedComparisons by remember {
+        mutableStateOf(preferencesManager.getAdUnlockedComparisons())
+    }
     var showSettings by remember { mutableStateOf(false) }
     var adDialogTarget by remember { mutableStateOf<RewardUnlockTarget?>(null) }
     var isRewardLoading by remember { mutableStateOf(false) }
     var rewardError by remember { mutableStateOf<String?>(null) }
     var pendingLaunchLevel by remember { mutableStateOf<Int?>(null) }
     var pendingAnimalSelection by remember { mutableStateOf<String?>(null) }
+    var pendingComparisonSelection by remember { mutableStateOf<String?>(null) }
 
     val layoutDirection = LayoutDirection.Ltr
 
@@ -205,6 +217,10 @@ fun AppNavigation() {
         composable(Screen.Comparisons.route) {
             ComparisonsScreen(
                 settings = settings,
+                lockedComparisonIds = lockedComparisons,
+                adUnlockedComparisonIds = adUnlockedComparisons,
+                newlyUnlockedComparisonId = pendingComparisonSelection,
+                onConsumeNewlyUnlockedComparison = { pendingComparisonSelection = null },
                 onBackClick = {
                     navController.popBackStack()
                 },
@@ -213,6 +229,12 @@ fun AppNavigation() {
                 },
                 onSettingsClick = {
                     showSettings = true
+                },
+                onLockedComparisonClick = { item ->
+                    if (!isRewardLoading) {
+                        rewardError = null
+                        adDialogTarget = RewardUnlockTarget.Comparison(item.id)
+                    }
                 }
             )
         }
@@ -303,7 +325,7 @@ fun AppNavigation() {
     }
 
     val dialogStrings = adDialogTarget?.let { target ->
-        buildDialogStrings(target, settings.language, animals)
+        buildDialogStrings(target, settings.language, animals, comparisonItems)
     }
 
     if (dialogStrings != null && adDialogTarget != null && activity != null) {
@@ -340,6 +362,12 @@ fun AppNavigation() {
                                     adUnlockedAnimals = updated
                                     preferencesManager.saveAdUnlockedAnimals(updated)
                                     pendingAnimalSelection = target.animalName
+                                }
+                                is RewardUnlockTarget.Comparison -> {
+                                    val updated = (adUnlockedComparisons + target.comparisonId).toSet()
+                                    adUnlockedComparisons = updated
+                                    preferencesManager.saveAdUnlockedComparisons(updated)
+                                    pendingComparisonSelection = target.comparisonId
                                 }
                             }
                         },
@@ -402,11 +430,17 @@ private fun showRewardedAd(
 private fun buildDialogStrings(
     target: RewardUnlockTarget,
     language: String,
-    animals: List<Animal>
+    animals: List<Animal>,
+    comparisons: List<ComparisonItem>
 ): RewardDialogStrings {
     return when (target) {
         is RewardUnlockTarget.Level -> buildLevelDialogStrings(target.level, language)
         is RewardUnlockTarget.Animal -> buildAnimalDialogStrings(target.animalName, language, animals)
+        is RewardUnlockTarget.Comparison -> buildComparisonDialogStrings(
+            target.comparisonId,
+            language,
+            comparisons
+        )
     }
 }
 
@@ -467,6 +501,38 @@ private fun buildAnimalDialogStrings(
         else -> RewardDialogStrings(
             title = "Unlock $displayName",
             message = "Watch a short ad to unlock this animal forever.",
+            watchLabel = "Watch & Unlock",
+            cancelLabel = "Maybe later",
+            loadingLabel = "Loading ad..."
+        )
+    }
+}
+
+private fun buildComparisonDialogStrings(
+    comparisonId: String,
+    language: String,
+    comparisonItems: List<ComparisonItem>
+): RewardDialogStrings {
+    val displayName = comparisonItems.find { it.id == comparisonId }?.title ?: comparisonId
+
+    return when (language) {
+        "ar" -> RewardDialogStrings(
+            title = "افتح بطاقة $displayName",
+            message = "شاهد إعلانًا قصيرًا لفتح هذا المثال من افعل ولا تفعل لطفلك.",
+            watchLabel = "شاهد الإعلان",
+            cancelLabel = "لاحقًا",
+            loadingLabel = "جارٍ تحميل الإعلان..."
+        )
+        "tr" -> RewardDialogStrings(
+            title = "$displayName kartını aç",
+            message = "Bu Yap & Yapma kartını kalıcı olarak açmak için kısa bir reklam izle.",
+            watchLabel = "Reklamı İzle",
+            cancelLabel = "Daha sonra",
+            loadingLabel = "Reklam yükleniyor..."
+        )
+        else -> RewardDialogStrings(
+            title = "Unlock $displayName",
+            message = "Watch a short ad to unlock this Do & Don't card forever.",
             watchLabel = "Watch & Unlock",
             cancelLabel = "Maybe later",
             loadingLabel = "Loading ad..."

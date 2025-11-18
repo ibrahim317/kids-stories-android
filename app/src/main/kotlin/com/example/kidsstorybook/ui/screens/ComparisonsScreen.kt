@@ -15,6 +15,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,6 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -45,9 +50,14 @@ import com.example.kidsstorybook.ui.theme.TextLight
 @Composable
 fun ComparisonsScreen(
     settings: AppSettings,
+    lockedComparisonIds: Set<String>,
+    adUnlockedComparisonIds: Set<String>,
+    newlyUnlockedComparisonId: String?,
+    onConsumeNewlyUnlockedComparison: () -> Unit,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onLockedComparisonClick: (ComparisonItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -58,6 +68,15 @@ fun ComparisonsScreen(
         comparisonGroups.flatMap { it.children }
     }
     var selectedItem by remember { mutableStateOf<ComparisonItem?>(null) }
+
+    LaunchedEffect(newlyUnlockedComparisonId) {
+        if (!newlyUnlockedComparisonId.isNullOrBlank()) {
+            comparisonItems.find { it.id == newlyUnlockedComparisonId }?.let { unlocked ->
+                selectedItem = unlocked
+            }
+            onConsumeNewlyUnlockedComparison()
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -98,7 +117,15 @@ fun ComparisonsScreen(
             } else {
                 ComparisonZigZagList(
                     items = comparisonItems,
-                    onItemClick = { selectedItem = it }
+                    lockedComparisonIds = lockedComparisonIds,
+                    adUnlockedComparisonIds = adUnlockedComparisonIds,
+                    lockedCtaLabel = when (settings.language) {
+                        "ar" -> "شاهد إعلان"
+                        "tr" -> "Reklam İzle"
+                        else -> "Watch Ad"
+                    },
+                    onItemClick = { selectedItem = it },
+                    onLockedItemClick = onLockedComparisonClick
                 )
             }
         }
@@ -160,7 +187,11 @@ private fun TopBar(
 @Composable
 private fun ComparisonZigZagList(
     items: List<ComparisonItem>,
-    onItemClick: (ComparisonItem) -> Unit
+    lockedComparisonIds: Set<String>,
+    adUnlockedComparisonIds: Set<String>,
+    lockedCtaLabel: String,
+    onItemClick: (ComparisonItem) -> Unit,
+    onLockedItemClick: (ComparisonItem) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -172,18 +203,35 @@ private fun ComparisonZigZagList(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                val currentItem = item
+                val requiresUnlock = lockedComparisonIds.contains(currentItem.id)
+                val hasUnlocked = adUnlockedComparisonIds.contains(currentItem.id)
+                val isLocked = requiresUnlock && !hasUnlocked
+
+                val handleClick = {
+                    if (isLocked) {
+                        onLockedItemClick(currentItem)
+                    } else {
+                        onItemClick(currentItem)
+                    }
+                }
+
                 if (index % 2 == 0) {
                     ComparisonItemCard(
-                        item = item,
-                        onClick = { onItemClick(item) },
+                        item = currentItem,
+                        isLocked = isLocked,
+                        lockedCtaLabel = lockedCtaLabel,
+                        onClick = handleClick,
                         modifier = Modifier.weight(1f)
                     )
                     Box(modifier = Modifier.weight(1f))
                 } else {
                     Box(modifier = Modifier.weight(1f))
                     ComparisonItemCard(
-                        item = item,
-                        onClick = { onItemClick(item) },
+                        item = currentItem,
+                        isLocked = isLocked,
+                        lockedCtaLabel = lockedCtaLabel,
+                        onClick = handleClick,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -196,7 +244,9 @@ private fun ComparisonZigZagList(
 private fun ComparisonItemCard(
     item: ComparisonItem,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLocked: Boolean,
+    lockedCtaLabel: String? = null
 ) {
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -212,6 +262,13 @@ private fun ComparisonItemCard(
 
     val glassBackground = Color(0xFFFAFAFA).copy(alpha = 0.8f)
     val glassBorder = Color.White.copy(alpha = 0.6f)
+
+    val saturation = if (isLocked) 0f else 1f
+    val colorMatrix = remember(saturation) {
+        ColorMatrix().apply {
+            setToSaturation(saturation)
+        }
+    }
 
     Box(
         modifier = modifier
@@ -243,7 +300,7 @@ private fun ComparisonItemCard(
         ) {
             Text(
                 text = item.title,
-                color = Color.Black,
+                color = Color.Black.copy(alpha = if (isLocked) 0.4f else 1f),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -268,7 +325,30 @@ private fun ComparisonItemCard(
                         color = Color.White.copy(alpha = 0.8f),
                         shape = CircleShape
                     ),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.colorMatrix(colorMatrix)
+            )
+
+            if (isLocked && !lockedCtaLabel.isNullOrBlank()) {
+                Text(
+                    text = lockedCtaLabel,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF555555),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        if (isLocked) {
+            Icon(
+                imageVector = Icons.Filled.Lock,
+                contentDescription = null,
+                tint = Color(0xFF555555),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .size(28.dp)
             )
         }
     }

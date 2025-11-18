@@ -20,6 +20,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_LEVEL_STARS = "level_stars"
         private const val KEY_AD_UNLOCKED_LEVELS = "ad_unlocked_levels"
         private const val KEY_AD_UNLOCKED_ANIMALS = "ad_unlocked_animals"
+        private const val KEY_AD_UNLOCKED_COMPARISONS = "ad_unlocked_comparisons"
     }
 
     fun saveLanguage(language: String) {
@@ -106,6 +107,7 @@ class PreferencesManager(context: Context) {
             remove(KEY_LEVEL_STARS)
             remove(KEY_AD_UNLOCKED_LEVELS)
             remove(KEY_AD_UNLOCKED_ANIMALS)
+            remove(KEY_AD_UNLOCKED_COMPARISONS)
             apply()
         }
     }
@@ -126,6 +128,14 @@ class PreferencesManager(context: Context) {
 
     fun saveAdUnlockedAnimals(animalNames: Set<String>) {
         prefs.edit().putStringSet(KEY_AD_UNLOCKED_ANIMALS, animalNames.toSet()).apply()
+    }
+
+    fun getAdUnlockedComparisons(): Set<String> {
+        return prefs.getStringSet(KEY_AD_UNLOCKED_COMPARISONS, emptySet()).orEmpty()
+    }
+
+    fun saveAdUnlockedComparisons(comparisonIds: Set<String>) {
+        prefs.edit().putStringSet(KEY_AD_UNLOCKED_COMPARISONS, comparisonIds.toSet()).apply()
     }
 
     private fun serializeLevelStars(levelStars: Map<Int, Int>): String {

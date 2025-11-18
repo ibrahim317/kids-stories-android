@@ -125,31 +125,31 @@ object StoryRepository {
             arabicTitle = "الأسد والفأر",
             turkishTitle = "Aslan ve Fare",
             englishImagePaths = listOf(
-                "stories/lion_mouse/en/img_1.jpg",
-                "stories/lion_mouse/en/img_2.jpg",
-                "stories/lion_mouse/en/img_3.jpg",
-                "stories/lion_mouse/en/img_4.jpg",
-                "stories/lion_mouse/en/img_5.jpg",
-                "stories/lion_mouse/en/img_6.jpg",
-                "stories/lion_mouse/en/img_7.jpg"
+                "stories/lion_mouse/en/img_1.png",
+                "stories/lion_mouse/en/img_2.png",
+                "stories/lion_mouse/en/img_3.png",
+                "stories/lion_mouse/en/img_4.png",
+                "stories/lion_mouse/en/img_5.png",
+                "stories/lion_mouse/en/img_6.png",
+                "stories/lion_mouse/en/img_7.png"
             ),
             arabicImagePaths = listOf(
-                "stories/lion_mouse/ar/img_1.jpg",
-                "stories/lion_mouse/ar/img_2.jpg",
-                "stories/lion_mouse/ar/img_3.jpg",
-                "stories/lion_mouse/ar/img_4.jpg",
-                "stories/lion_mouse/ar/img_5.jpg",
-                "stories/lion_mouse/ar/img_6.jpg",
-                "stories/lion_mouse/ar/img_7.jpg"
+                "stories/lion_mouse/ar/img_1.png",
+                "stories/lion_mouse/ar/img_2.png",
+                "stories/lion_mouse/ar/img_3.png",
+                "stories/lion_mouse/ar/img_4.png",
+                "stories/lion_mouse/ar/img_5.png",
+                "stories/lion_mouse/ar/img_6.png",
+                "stories/lion_mouse/ar/img_7.png"
             ),
             turkishImagePaths = listOf(
-                "stories/lion_mouse/tr/img_1.jpg",
-                "stories/lion_mouse/tr/img_2.jpg",
-                "stories/lion_mouse/tr/img_3.jpg",
-                "stories/lion_mouse/tr/img_4.jpg",
-                "stories/lion_mouse/tr/img_5.jpg",
-                "stories/lion_mouse/tr/img_6.jpg",
-                "stories/lion_mouse/tr/img_7.jpg"
+                "stories/lion_mouse/tr/img_1.png",
+                "stories/lion_mouse/tr/img_2.png",
+                "stories/lion_mouse/tr/img_3.png",
+                "stories/lion_mouse/tr/img_4.png",
+                "stories/lion_mouse/tr/img_5.png",
+                "stories/lion_mouse/tr/img_6.png",
+                "stories/lion_mouse/tr/img_7.png"
             ),
             englishAudioPath = "stories/lion_mouse/en/audio.wav",
             arabicAudioPath = "stories/lion_mouse/ar/audio.wav",

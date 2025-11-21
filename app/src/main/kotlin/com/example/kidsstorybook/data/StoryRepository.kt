@@ -196,7 +196,7 @@ object StoryRepository {
                 "stories/lion_mouse/tr/sound/5.wav",
                 "stories/lion_mouse/tr/sound/6.wav",
             )
-        )
+        ),
         Story(
             id = 4,
             englishTitle = "Big and Small Cat",
@@ -253,7 +253,7 @@ object StoryRepository {
                 "stories/big_and_small_cat/ar/sound/7.wav"
             ),
             turkishAudioPaths = listOf(
-                "stories/big_and_small_cat/tr/sound/cover.wav"
+                "stories/big_and_small_cat/tr/sound/cover.wav",
                 "stories/big_and_small_cat/tr/sound/1.wav",
                 "stories/big_and_small_cat/tr/sound/2.wav",
                 "stories/big_and_small_cat/tr/sound/3.wav",

@@ -92,32 +92,50 @@ object StoryRepository {
             arabicTitle = "الثعلب والغراب",
             turkishTitle = "Tilki ve Karga",
             englishImagePaths = listOf(
-                "stories/fox_crow/en/img_awal.png",
-                "stories/fox_crow/en/img_1.png",
-                "stories/fox_crow/en/img_2.png",
-                "stories/fox_crow/en/img_3.png",
-                "stories/fox_crow/en/img_4.png",
-                "stories/fox_crow/en/img_5.png"
+                "stories/fox_crow/en/cover.png",
+                "stories/fox_crow/en/1.png",
+                "stories/fox_crow/en/2.png",
+                "stories/fox_crow/en/3.png",
+                "stories/fox_crow/en/4.png",
+                "stories/fox_crow/en/5.png"
             ),
             arabicImagePaths = listOf(
-                "stories/fox_crow/ar/img_awal.png",
-                "stories/fox_crow/ar/img_1.png",
-                "stories/fox_crow/ar/img_2.png",
-                "stories/fox_crow/ar/img_3.png",
-                "stories/fox_crow/ar/img_4.png",
-                "stories/fox_crow/ar/img_5.png"
+                "stories/fox_crow/ar/cover.png",
+                "stories/fox_crow/ar/1.png",
+                "stories/fox_crow/ar/2.png",
+                "stories/fox_crow/ar/3.png",
+                "stories/fox_crow/ar/4.png",
+                "stories/fox_crow/ar/5.png"
             ),
             turkishImagePaths = listOf(
-                "stories/fox_crow/tr/img_awal.png",
-                "stories/fox_crow/tr/img_1.png",
-                "stories/fox_crow/tr/img_2.png",
-                "stories/fox_crow/tr/img_3.png",
-                "stories/fox_crow/tr/img_4.png",
-                "stories/fox_crow/tr/img_5.png"
+                "stories/fox_crow/tr/cover.png",
+                "stories/fox_crow/tr/1.png",
+                "stories/fox_crow/tr/2.png",
+                "stories/fox_crow/tr/3.png",
+                "stories/fox_crow/tr/4.png",
+                "stories/fox_crow/tr/5.png"
             ),
-            englishAudioPath = "stories/fox_crow/en/audio.wav",
-            arabicAudioPath = "stories/fox_crow/ar/audio.wav",
-            turkishAudioPath = "stories/fox_crow/tr/audio.wav"
+            englishAudioPaths = listOf(
+                "stories/fox_crow/en/sound/1.wav",
+                "stories/fox_crow/en/sound/2.wav",
+                "stories/fox_crow/en/sound/3.wav",
+                "stories/fox_crow/en/sound/4.wav",
+                "stories/fox_crow/en/sound/5.wav"
+            ),
+            arabicAudioPaths = listOf(
+                "stories/fox_crow/ar/sound/1.wav",
+                "stories/fox_crow/ar/sound/2.wav",
+                "stories/fox_crow/ar/sound/3.wav",
+                "stories/fox_crow/ar/sound/4.wav",
+                "stories/fox_crow/ar/sound/5.wav"
+            ),
+            turkishAudioPaths = listOf(
+                "stories/fox_crow/tr/sound/1.wav",
+                "stories/fox_crow/tr/sound/2.wav",
+                "stories/fox_crow/tr/sound/3.wav",
+                "stories/fox_crow/tr/sound/4.wav",
+                "stories/fox_crow/tr/sound/5.wav"
+            )
         ),
         Story(
             id = 3,
@@ -125,36 +143,60 @@ object StoryRepository {
             arabicTitle = "الأسد والفأر",
             turkishTitle = "Aslan ve Fare",
             englishImagePaths = listOf(
-                "stories/lion_mouse/en/img_1.png",
-                "stories/lion_mouse/en/img_2.png",
-                "stories/lion_mouse/en/img_3.png",
-                "stories/lion_mouse/en/img_4.png",
-                "stories/lion_mouse/en/img_5.png",
-                "stories/lion_mouse/en/img_6.png",
-                "stories/lion_mouse/en/img_7.png"
+                "stories/lion_mouse/en/cover.png",
+                "stories/lion_mouse/en/1.png",
+                "stories/lion_mouse/en/2.png",
+                "stories/lion_mouse/en/3.png",
+                "stories/lion_mouse/en/4.png",
+                "stories/lion_mouse/en/5.png",
+                "stories/lion_mouse/en/6.png",
             ),
             arabicImagePaths = listOf(
-                "stories/lion_mouse/ar/img_1.png",
-                "stories/lion_mouse/ar/img_2.png",
-                "stories/lion_mouse/ar/img_3.png",
-                "stories/lion_mouse/ar/img_4.png",
-                "stories/lion_mouse/ar/img_5.png",
-                "stories/lion_mouse/ar/img_6.png",
-                "stories/lion_mouse/ar/img_7.png"
+                "stories/lion_mouse/ar/cover.png",
+                "stories/lion_mouse/ar/1.png",
+                "stories/lion_mouse/ar/2.png",
+                "stories/lion_mouse/ar/3.png",
+                "stories/lion_mouse/ar/4.png",
+                "stories/lion_mouse/ar/5.png",
+                "stories/lion_mouse/ar/6.png",
             ),
             turkishImagePaths = listOf(
-                "stories/lion_mouse/tr/img_1.png",
-                "stories/lion_mouse/tr/img_2.png",
-                "stories/lion_mouse/tr/img_3.png",
-                "stories/lion_mouse/tr/img_4.png",
-                "stories/lion_mouse/tr/img_5.png",
-                "stories/lion_mouse/tr/img_6.png",
-                "stories/lion_mouse/tr/img_7.png"
+                "stories/lion_mouse/tr/cover.png",
+                "stories/lion_mouse/tr/1.png",
+                "stories/lion_mouse/tr/2.png",
+                "stories/lion_mouse/tr/3.png",
+                "stories/lion_mouse/tr/4.png",
+                "stories/lion_mouse/tr/5.png",
+                "stories/lion_mouse/tr/6.png",
             ),
-            englishAudioPath = "stories/lion_mouse/en/audio.wav",
-            arabicAudioPath = "stories/lion_mouse/ar/audio.wav",
-            turkishAudioPath = "stories/lion_mouse/tr/audio.wav"
-        ),
+            englishAudioPaths = listOf(
+                "stories/lion_mouse/en/sound/cover.wav",
+                "stories/lion_mouse/en/sound/1.wav",
+                "stories/lion_mouse/en/sound/2.wav",
+                "stories/lion_mouse/en/sound/3.wav",
+                "stories/lion_mouse/en/sound/4.wav",
+                "stories/lion_mouse/en/sound/5.wav",
+                "stories/lion_mouse/en/sound/6.wav",
+            ),
+            arabicAudioPaths = listOf(
+                "stories/lion_mouse/ar/sound/cover.wav",
+                "stories/lion_mouse/ar/sound/1.wav",
+                "stories/lion_mouse/ar/sound/2.wav",
+                "stories/lion_mouse/ar/sound/3.wav",
+                "stories/lion_mouse/ar/sound/4.wav",
+                "stories/lion_mouse/ar/sound/5.wav",
+                "stories/lion_mouse/ar/sound/6.wav",
+            ),
+            turkishAudioPaths = listOf(
+                "stories/lion_mouse/tr/sound/cover.wav",
+                "stories/lion_mouse/tr/sound/1.wav",
+                "stories/lion_mouse/tr/sound/2.wav",
+                "stories/lion_mouse/tr/sound/3.wav",
+                "stories/lion_mouse/tr/sound/4.wav",
+                "stories/lion_mouse/tr/sound/5.wav",
+                "stories/lion_mouse/tr/sound/6.wav",
+            )
+        )
         Story(
             id = 4,
             englishTitle = "Big and Small Cat",
@@ -191,6 +233,7 @@ object StoryRepository {
                 "stories/big_and_small_cat/tr/7.png"
             ),
             englishAudioPaths = listOf(
+                "stories/big_and_small_cat/en/sound/cover.wav",
                 "stories/big_and_small_cat/en/sound/1.wav",
                 "stories/big_and_small_cat/en/sound/2.wav",
                 "stories/big_and_small_cat/en/sound/3.wav",
@@ -200,6 +243,7 @@ object StoryRepository {
                 "stories/big_and_small_cat/en/sound/7.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/big_and_small_cat/ar/sound/cover.wav",
                 "stories/big_and_small_cat/ar/sound/1.wav",
                 "stories/big_and_small_cat/ar/sound/2.wav",
                 "stories/big_and_small_cat/ar/sound/3.wav",
@@ -209,6 +253,7 @@ object StoryRepository {
                 "stories/big_and_small_cat/ar/sound/7.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/big_and_small_cat/tr/sound/cover.wav"
                 "stories/big_and_small_cat/tr/sound/1.wav",
                 "stories/big_and_small_cat/tr/sound/2.wav",
                 "stories/big_and_small_cat/tr/sound/3.wav",
@@ -257,6 +302,7 @@ object StoryRepository {
                 "stories/choo-choo_to_bedtime/tr/8.png"
             ),
             englishAudioPaths = listOf(
+                "stories/choo-choo_to_bedtime/en/sound/cover.wav",
                 "stories/choo-choo_to_bedtime/en/sound/1.wav",
                 "stories/choo-choo_to_bedtime/en/sound/2.wav",
                 "stories/choo-choo_to_bedtime/en/sound/3.wav",
@@ -267,6 +313,7 @@ object StoryRepository {
                 "stories/choo-choo_to_bedtime/en/sound/8.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/choo-choo_to_bedtime/ar/sound/cover.wav",
                 "stories/choo-choo_to_bedtime/ar/sound/1.wav",
                 "stories/choo-choo_to_bedtime/ar/sound/2.wav",
                 "stories/choo-choo_to_bedtime/ar/sound/3.wav",
@@ -277,6 +324,7 @@ object StoryRepository {
                 "stories/choo-choo_to_bedtime/ar/sound/8.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/choo-choo_to_bedtime/tr/sound/cover.wav",
                 "stories/choo-choo_to_bedtime/tr/sound/1.wav",
                 "stories/choo-choo_to_bedtime/tr/sound/2.wav",
                 "stories/choo-choo_to_bedtime/tr/sound/3.wav",
@@ -320,6 +368,7 @@ object StoryRepository {
                 "stories/leo_the_little_astronaut/tr/6.jpg"
             ),
             englishAudioPaths = listOf(
+                "stories/leo_the_little_astronaut/en/sound/cover.wav",
                 "stories/leo_the_little_astronaut/en/sound/1.wav",
                 "stories/leo_the_little_astronaut/en/sound/2.wav",
                 "stories/leo_the_little_astronaut/en/sound/3.wav",
@@ -328,6 +377,7 @@ object StoryRepository {
                 "stories/leo_the_little_astronaut/en/sound/6.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/leo_the_little_astronaut/ar/sound/cover.wav",
                 "stories/leo_the_little_astronaut/ar/sound/1.wav",
                 "stories/leo_the_little_astronaut/ar/sound/2.wav",
                 "stories/leo_the_little_astronaut/ar/sound/3.wav",
@@ -336,6 +386,7 @@ object StoryRepository {
                 "stories/leo_the_little_astronaut/ar/sound/6.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/leo_the_little_astronaut/tr/sound/cover.wav",
                 "stories/leo_the_little_astronaut/tr/sound/1.wav",
                 "stories/leo_the_little_astronaut/tr/sound/2.wav",
                 "stories/leo_the_little_astronaut/tr/sound/3.wav",
@@ -383,6 +434,7 @@ object StoryRepository {
                 "stories/lila_the_flying_butterfly/tr/8.png"
             ),
             englishAudioPaths = listOf(
+                "stories/lila_the_flying_butterfly/en/sound/cover.wav",
                 "stories/lila_the_flying_butterfly/en/sound/1.wav",
                 "stories/lila_the_flying_butterfly/en/sound/2.wav",
                 "stories/lila_the_flying_butterfly/en/sound/3.wav",
@@ -393,6 +445,7 @@ object StoryRepository {
                 "stories/lila_the_flying_butterfly/en/sound/8.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/lila_the_flying_butterfly/ar/sound/cover.wav",
                 "stories/lila_the_flying_butterfly/ar/sound/1.wav",
                 "stories/lila_the_flying_butterfly/ar/sound/2.wav",
                 "stories/lila_the_flying_butterfly/ar/sound/3.wav",
@@ -403,6 +456,7 @@ object StoryRepository {
                 "stories/lila_the_flying_butterfly/ar/sound/8.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/lila_the_flying_butterfly/tr/sound/cover.wav",
                 "stories/lila_the_flying_butterfly/tr/sound/1.wav",
                 "stories/lila_the_flying_butterfly/tr/sound/2.wav",
                 "stories/lila_the_flying_butterfly/tr/sound/3.wav",
@@ -440,18 +494,21 @@ object StoryRepository {
                 "stories/lily_the_ladybugs_colors/tr/4.png"
             ),
             englishAudioPaths = listOf(
+                "stories/lily_the_ladybugs_colors/en/sound/cover.wav",
                 "stories/lily_the_ladybugs_colors/en/sound/1.wav",
                 "stories/lily_the_ladybugs_colors/en/sound/2.wav",
                 "stories/lily_the_ladybugs_colors/en/sound/3.wav",
                 "stories/lily_the_ladybugs_colors/en/sound/4.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/lily_the_ladybugs_colors/ar/sound/cover.wav",
                 "stories/lily_the_ladybugs_colors/ar/sound/1.wav",
                 "stories/lily_the_ladybugs_colors/ar/sound/2.wav",
                 "stories/lily_the_ladybugs_colors/ar/sound/3.wav",
                 "stories/lily_the_ladybugs_colors/ar/sound/4.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/lily_the_ladybugs_colors/tr/sound/cover.wav",
                 "stories/lily_the_ladybugs_colors/tr/sound/1.wav",
                 "stories/lily_the_ladybugs_colors/tr/sound/2.wav",
                 "stories/lily_the_ladybugs_colors/tr/sound/3.wav",
@@ -494,6 +551,7 @@ object StoryRepository {
                 "stories/little_bear_honeys_picnic/tr/7.png"
             ),
             englishAudioPaths = listOf(
+                "stories/little_bear_honeys_picnic/en/sound/cover.wav",
                 "stories/little_bear_honeys_picnic/en/sound/1.wav",
                 "stories/little_bear_honeys_picnic/en/sound/2.wav",
                 "stories/little_bear_honeys_picnic/en/sound/3.wav",
@@ -503,6 +561,7 @@ object StoryRepository {
                 "stories/little_bear_honeys_picnic/en/sound/7.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/little_bear_honeys_picnic/ar/sound/cover.wav",
                 "stories/little_bear_honeys_picnic/ar/sound/1.wav",
                 "stories/little_bear_honeys_picnic/ar/sound/2.wav",
                 "stories/little_bear_honeys_picnic/ar/sound/3.wav",
@@ -512,6 +571,7 @@ object StoryRepository {
                 "stories/little_bear_honeys_picnic/ar/sound/7.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/little_bear_honeys_picnic/tr/sound/cover.wav",
                 "stories/little_bear_honeys_picnic/tr/sound/1.wav",
                 "stories/little_bear_honeys_picnic/tr/sound/2.wav",
                 "stories/little_bear_honeys_picnic/tr/sound/3.wav",
@@ -557,6 +617,7 @@ object StoryRepository {
                 "stories/red_yellow_reen_traffic_light/tr/7.png"
             ),
             englishAudioPaths = listOf(
+                "stories/red_yellow_reen_traffic_light/en/sound/cover.wav",
                 "stories/red_yellow_reen_traffic_light/en/sound/1.wav",
                 "stories/red_yellow_reen_traffic_light/en/sound/2.wav",
                 "stories/red_yellow_reen_traffic_light/en/sound/3.wav",
@@ -566,6 +627,7 @@ object StoryRepository {
                 "stories/red_yellow_reen_traffic_light/en/sound/7.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/red_yellow_reen_traffic_light/ar/sound/cover.wav",
                 "stories/red_yellow_reen_traffic_light/ar/sound/1.wav",
                 "stories/red_yellow_reen_traffic_light/ar/sound/2.wav",
                 "stories/red_yellow_reen_traffic_light/ar/sound/3.wav",
@@ -575,6 +637,7 @@ object StoryRepository {
                 "stories/red_yellow_reen_traffic_light/ar/sound/7.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/red_yellow_reen_traffic_light/tr/sound/cover.wav",
                 "stories/red_yellow_reen_traffic_light/tr/sound/1.wav",
                 "stories/red_yellow_reen_traffic_light/tr/sound/2.wav",
                 "stories/red_yellow_reen_traffic_light/tr/sound/3.wav",
@@ -665,18 +728,21 @@ object StoryRepository {
                 "stories/the_little_blue_train/tr/4.png"
             ),
             englishAudioPaths = listOf(
+                "stories/the_little_blue_train/en/sound/cover.wav",
                 "stories/the_little_blue_train/en/sound/1.wav",
                 "stories/the_little_blue_train/en/sound/2.wav",
                 "stories/the_little_blue_train/en/sound/3.wav",
                 "stories/the_little_blue_train/en/sound/4.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/the_little_blue_train/ar/sound/cover.wav",
                 "stories/the_little_blue_train/ar/sound/1.wav",
                 "stories/the_little_blue_train/ar/sound/2.wav",
                 "stories/the_little_blue_train/ar/sound/3.wav",
                 "stories/the_little_blue_train/ar/sound/4.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/the_little_blue_train/tr/sound/cover.wav",
                 "stories/the_little_blue_train/tr/sound/1.wav",
                 "stories/the_little_blue_train/tr/sound/2.wav",
                 "stories/the_little_blue_train/tr/sound/3.wav",
@@ -689,6 +755,7 @@ object StoryRepository {
             arabicTitle = "الجورب الأزرق المفقود",
             turkishTitle = "Kayıp Mavi Çorap",
             englishImagePaths = listOf(
+                "stories/the_lost_blue_sock/en/cover.png",
                 "stories/the_lost_blue_sock/en/1.png",
                 "stories/the_lost_blue_sock/en/2.png",
                 "stories/the_lost_blue_sock/en/3.png",
@@ -698,6 +765,7 @@ object StoryRepository {
                 "stories/the_lost_blue_sock/en/7.png"
             ),
             arabicImagePaths = listOf(
+                "stories/the_lost_blue_sock/ar/cover.png",
                 "stories/the_lost_blue_sock/ar/1.png",
                 "stories/the_lost_blue_sock/ar/2.png",
                 "stories/the_lost_blue_sock/ar/3.png",
@@ -707,6 +775,7 @@ object StoryRepository {
                 "stories/the_lost_blue_sock/ar/7.png"
             ),
             turkishImagePaths = listOf(
+                "stories/the_lost_blue_sock/tr/cover.png",
                 "stories/the_lost_blue_sock/tr/1.png",
                 "stories/the_lost_blue_sock/tr/2.png",
                 "stories/the_lost_blue_sock/tr/3.png",
@@ -716,6 +785,7 @@ object StoryRepository {
                 "stories/the_lost_blue_sock/tr/7.png"
             ),
             englishAudioPaths = listOf(
+                "stories/the_lost_blue_sock/en/sound/cover.wav",
                 "stories/the_lost_blue_sock/en/sound/1.wav",
                 "stories/the_lost_blue_sock/en/sound/2.wav",
                 "stories/the_lost_blue_sock/en/sound/3.wav",
@@ -725,6 +795,7 @@ object StoryRepository {
                 "stories/the_lost_blue_sock/en/sound/7.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/the_lost_blue_sock/ar/sound/cover.wav",
                 "stories/the_lost_blue_sock/ar/sound/1.wav",
                 "stories/the_lost_blue_sock/ar/sound/2.wav",
                 "stories/the_lost_blue_sock/ar/sound/3.wav",
@@ -734,6 +805,7 @@ object StoryRepository {
                 "stories/the_lost_blue_sock/ar/sound/7.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/the_lost_blue_sock/tr/sound/cover.wav",
                 "stories/the_lost_blue_sock/tr/sound/1.wav",
                 "stories/the_lost_blue_sock/tr/sound/2.wav",
                 "stories/the_lost_blue_sock/tr/sound/3.wav",
@@ -776,6 +848,7 @@ object StoryRepository {
                 "stories/timmy_the_tiny_turtle/tr/6.png"
             ),
             englishAudioPaths = listOf(
+                "stories/timmy_the_tiny_turtle/en/sound/cover.wav",
                 "stories/timmy_the_tiny_turtle/en/sound/1.wav",
                 "stories/timmy_the_tiny_turtle/en/sound/2.wav",
                 "stories/timmy_the_tiny_turtle/en/sound/3.wav",
@@ -784,6 +857,7 @@ object StoryRepository {
                 "stories/timmy_the_tiny_turtle/en/sound/6.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/timmy_the_tiny_turtle/ar/sound/cover.wav",
                 "stories/timmy_the_tiny_turtle/ar/sound/1.wav",
                 "stories/timmy_the_tiny_turtle/ar/sound/2.wav",
                 "stories/timmy_the_tiny_turtle/ar/sound/3.wav",
@@ -792,6 +866,7 @@ object StoryRepository {
                 "stories/timmy_the_tiny_turtle/ar/sound/6.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/timmy_the_tiny_turtle/tr/sound/cover.wav",
                 "stories/timmy_the_tiny_turtle/tr/sound/1.wav",
                 "stories/timmy_the_tiny_turtle/tr/sound/2.wav",
                 "stories/timmy_the_tiny_turtle/tr/sound/3.wav",
@@ -836,6 +911,7 @@ object StoryRepository {
                 "stories/ziko_the_tall_iraffe/tr/7.png"
             ),
             englishAudioPaths = listOf(
+                "stories/ziko_the_tall_iraffe/en/sound/cover.wav",
                 "stories/ziko_the_tall_iraffe/en/sound/1.wav",
                 "stories/ziko_the_tall_iraffe/en/sound/2.wav",
                 "stories/ziko_the_tall_iraffe/en/sound/3.wav",
@@ -845,6 +921,7 @@ object StoryRepository {
                 "stories/ziko_the_tall_iraffe/en/sound/7.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/ziko_the_tall_iraffe/ar/sound/cover.wav",
                 "stories/ziko_the_tall_iraffe/ar/sound/1.wav",
                 "stories/ziko_the_tall_iraffe/ar/sound/2.wav",
                 "stories/ziko_the_tall_iraffe/ar/sound/3.wav",
@@ -854,6 +931,7 @@ object StoryRepository {
                 "stories/ziko_the_tall_iraffe/ar/sound/7.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/ziko_the_tall_iraffe/tr/sound/cover.wav",
                 "stories/ziko_the_tall_iraffe/tr/sound/1.wav",
                 "stories/ziko_the_tall_iraffe/tr/sound/2.wav",
                 "stories/ziko_the_tall_iraffe/tr/sound/3.wav",

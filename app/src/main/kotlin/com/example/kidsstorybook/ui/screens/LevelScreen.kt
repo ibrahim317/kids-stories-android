@@ -90,20 +90,9 @@ fun LevelScreen(
     }
 
     fun playAudioForCurrentSlide() {
-        // Skip audio for cover page (first image, index 0)
-        if (currentImageIndex == 0) {
-            releaseMediaPlayer()
-            return
-        }
-        
         val currentAudioPath = if (hasMultiAudio && audioPaths != null && currentImageIndex < audioPaths.size) {
-            // For multi-audio stories, audio index should be currentImageIndex - 1 (skip cover)
-            val audioIndex = currentImageIndex - 1
-            if (audioIndex >= 0 && audioIndex < audioPaths.size) {
-                audioPaths[audioIndex]
-            } else {
-                null
-            }
+            // For multi-audio stories, audio index matches image index
+            audioPaths[currentImageIndex]
         } else {
             audioPath
         }
@@ -308,18 +297,11 @@ fun LevelScreen(
                 }
             }
 
-            // Audio controls (skip cover page - index 0)
+            // Audio controls
             val currentAudioPath = if (imagePaths.isNotEmpty()) {
-                if (currentImageIndex == 0) {
-                    null // No audio for cover page
-                } else if (hasMultiAudio && audioPaths != null) {
-                    // For multi-audio stories, audio index should be currentImageIndex - 1 (skip cover)
-                    val audioIndex = currentImageIndex - 1
-                    if (audioIndex >= 0 && audioIndex < audioPaths.size) {
-                        audioPaths[audioIndex]
-                    } else {
-                        null
-                    }
+                if (hasMultiAudio && audioPaths != null && currentImageIndex < audioPaths.size) {
+                    // For multi-audio stories, audio index matches image index
+                    audioPaths[currentImageIndex]
                 } else {
                     audioPath
                 }
@@ -327,7 +309,7 @@ fun LevelScreen(
                 null
             }
             
-            // Audio controls - always show button but disable on first page
+            // Audio controls - always show button
             if (imagePaths.isNotEmpty()) {
                 Row(
                     modifier = Modifier

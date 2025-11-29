@@ -50,6 +50,7 @@ object StoryRepository {
                 "stories/barnaby_bear_and_the_big_red_ball/tr/10.png"
             ),
             englishAudioPaths = listOf(
+                "stories/barnaby_bear_and_the_big_red_ball/en/sound/cover.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/en/sound/1.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/en/sound/2.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/en/sound/3.wav",
@@ -62,6 +63,7 @@ object StoryRepository {
                 "stories/barnaby_bear_and_the_big_red_ball/en/sound/10.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/barnaby_bear_and_the_big_red_ball/ar/sound/cover.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/ar/sound/1.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/ar/sound/2.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/ar/sound/3.wav",
@@ -74,6 +76,7 @@ object StoryRepository {
                 "stories/barnaby_bear_and_the_big_red_ball/ar/sound/10.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/barnaby_bear_and_the_big_red_ball/tr/sound/cover.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/tr/sound/1.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/tr/sound/2.wav",
                 "stories/barnaby_bear_and_the_big_red_ball/tr/sound/3.wav",

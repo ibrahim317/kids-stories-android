@@ -46,6 +46,14 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+        warningsAsErrors false
+        // Disable dependency checking to avoid Kotlin version mismatch issues during lint
+        // The actual compilation uses the correct Kotlin version from build.gradle
+        checkDependencies false
+    }
 }
 
 dependencies {

@@ -65,7 +65,7 @@ fun ComparisonsScreen(
         ComparisonRepository.getComparisonGroups(context, settings.language)
     }
     val comparisonItems = remember(comparisonGroups) {
-        comparisonGroups.flatMap { it.children }
+        comparisonGroups.flatMap { group -> group.children }
     }
     var selectedItem by remember { mutableStateOf<ComparisonItem?>(null) }
 
@@ -265,9 +265,9 @@ private fun ComparisonItemCard(
 
     val saturation = if (isLocked) 0f else 1f
     val colorMatrix = remember(saturation) {
-        ColorMatrix().apply {
-            setToSaturation(saturation)
-        }
+        val matrix = ColorMatrix()
+        matrix.setToSaturation(saturation)
+        matrix
     }
 
     Box(

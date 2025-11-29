@@ -92,9 +92,9 @@ fun AnimalCard(
             // Animal Image
             val saturation = if (isLocked) 0f else 1f
             val colorMatrix = remember(saturation) {
-                ColorMatrix().apply {
-                    setToSaturation(saturation)
-                }
+                val matrix = ColorMatrix()
+                matrix.setToSaturation(saturation)
+                matrix
             }
 
             AsyncImage(

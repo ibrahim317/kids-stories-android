@@ -116,6 +116,7 @@ object StoryRepository {
                 "stories/fox_crow/tr/5.png"
             ),
             englishAudioPaths = listOf(
+                "stories/fox_crow/en/sound/cover.wav",
                 "stories/fox_crow/en/sound/1.wav",
                 "stories/fox_crow/en/sound/2.wav",
                 "stories/fox_crow/en/sound/3.wav",
@@ -123,6 +124,7 @@ object StoryRepository {
                 "stories/fox_crow/en/sound/5.wav"
             ),
             arabicAudioPaths = listOf(
+                "stories/fox_crow/ar/sound/cover.wav",
                 "stories/fox_crow/ar/sound/1.wav",
                 "stories/fox_crow/ar/sound/2.wav",
                 "stories/fox_crow/ar/sound/3.wav",
@@ -130,6 +132,7 @@ object StoryRepository {
                 "stories/fox_crow/ar/sound/5.wav"
             ),
             turkishAudioPaths = listOf(
+                "stories/fox_crow/tr/sound/cover.wav",
                 "stories/fox_crow/tr/sound/1.wav",
                 "stories/fox_crow/tr/sound/2.wav",
                 "stories/fox_crow/tr/sound/3.wav",

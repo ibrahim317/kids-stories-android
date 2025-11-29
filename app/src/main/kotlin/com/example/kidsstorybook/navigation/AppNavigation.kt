@@ -19,6 +19,7 @@ import com.example.kidsstorybook.models.AnimalGatekeeper
 import com.example.kidsstorybook.models.ComparisonGatekeeper
 import com.example.kidsstorybook.models.ComparisonItem
 import com.example.kidsstorybook.models.GameProgress
+import com.example.kidsstorybook.models.LanguageProgress
 import com.example.kidsstorybook.models.LevelGatekeeper
 import com.example.kidsstorybook.ui.screens.*
 import com.example.kidsstorybook.ui.components.RewardedAdDialog
@@ -75,9 +76,14 @@ fun AppNavigation() {
         ComparisonRepository.getComparisonItems(context, settings.language)
     }
 
-    // App state
-    var progress by remember {
-        mutableStateOf(preferencesManager.getProgress().clamp(totalLevels))
+    // App state - language-specific progress
+    var languageProgress by remember {
+        mutableStateOf(preferencesManager.getLanguageProgress().clamp(totalLevels))
+    }
+    
+    // Get current language's progress
+    val progress = remember(settings.language, languageProgress) {
+        languageProgress.getProgressForLanguage(settings.language).clamp(totalLevels)
     }
     var adUnlockedLevels by remember {
         mutableStateOf(preferencesManager.getAdUnlockedLevels())
@@ -104,8 +110,14 @@ fun AppNavigation() {
             currentSettings = settings,
             onDismiss = { showSettings = false },
             onSettingsChange = { newSettings ->
+                val oldLanguage = settings.language
                 settings = newSettings
                 preferencesManager.saveSettings(newSettings)
+                
+                // If language changed, reload language progress
+                if (oldLanguage != newSettings.language) {
+                    languageProgress = preferencesManager.getLanguageProgress().clamp(totalLevels)
+                }
             }
         )
     }
@@ -279,15 +291,16 @@ fun AppNavigation() {
                     level = levelNumber,
                     settings = settings,
                     onLevelComplete = {
-                        // Update progress with full completion
-                        val newProgress = progress.withLevelStars(
+                        // Update progress with full completion for current language
+                        val currentLanguageProgress = languageProgress.getProgressForLanguage(settings.language)
+                        val newProgress = currentLanguageProgress.withLevelStars(
                             level = levelNumber,
                             starsEarned = GameProgress.MAX_STARS,
                             totalLevels = totalLevels
                         )
-                        if (newProgress != progress) {
-                            progress = newProgress
-                            preferencesManager.saveProgress(newProgress)
+                        if (newProgress != currentLanguageProgress) {
+                            languageProgress = languageProgress.withProgressForLanguage(settings.language, newProgress)
+                            preferencesManager.saveProgressForLanguage(settings.language, newProgress)
                         }
 
                         // Navigate back to roadmap
@@ -303,14 +316,16 @@ fun AppNavigation() {
                         showSettings = true
                     },
                     onProgressUpdate = { level, stars ->
-                        val updatedProgress = progress.withLevelStars(
+                        // Update progress for current language
+                        val currentLanguageProgress = languageProgress.getProgressForLanguage(settings.language)
+                        val updatedProgress = currentLanguageProgress.withLevelStars(
                             level = level,
                             starsEarned = stars,
                             totalLevels = totalLevels
                         )
-                        if (updatedProgress != progress) {
-                            progress = updatedProgress
-                            preferencesManager.saveProgress(updatedProgress)
+                        if (updatedProgress != currentLanguageProgress) {
+                            languageProgress = languageProgress.withProgressForLanguage(settings.language, updatedProgress)
+                            preferencesManager.saveProgressForLanguage(settings.language, updatedProgress)
                         }
                     }
                 )

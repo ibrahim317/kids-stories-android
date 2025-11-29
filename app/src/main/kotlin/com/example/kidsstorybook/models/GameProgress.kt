@@ -49,5 +49,43 @@ data class GameProgress(
     }
 }
 
+/**
+ * Tracks progress separately for each language.
+ * Each language has its own GameProgress, allowing independent progress tracking.
+ */
+data class LanguageProgress(
+    val progressByLanguage: Map<String, GameProgress> = emptyMap()
+) {
+    /**
+     * Get progress for a specific language, or default progress if not found.
+     */
+    fun getProgressForLanguage(language: String): GameProgress {
+        return progressByLanguage[language] ?: GameProgress()
+    }
+
+    /**
+     * Update progress for a specific language.
+     */
+    fun withProgressForLanguage(language: String, progress: GameProgress): LanguageProgress {
+        return copy(
+            progressByLanguage = progressByLanguage + (language to progress)
+        )
+    }
+
+    /**
+     * Clamp all language progress to valid level ranges.
+     */
+    fun clamp(totalLevels: Int): LanguageProgress {
+        val clampedProgress = progressByLanguage.mapValues { (_, progress) ->
+            progress.clamp(totalLevels)
+        }
+        return if (clampedProgress != progressByLanguage) {
+            copy(progressByLanguage = clampedProgress)
+        } else {
+            this
+        }
+    }
+}
+
 
 

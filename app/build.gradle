@@ -1,0 +1,88 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    namespace 'com.shahadalrubaye.kidsstorybook'
+    compileSdkVersion 34
+    defaultConfig {
+        applicationId "com.shahadalrubaye.kidsstorybook"
+        minSdkVersion 24
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        manifestPlaceholders = [
+                admobAppId: (project.findProperty('ADMOB_APP_ID')
+                        ?: "ca-app-pub-4649566821640233~2127823127")
+        ]
+        def rewardedAdUnitId = project.findProperty('ADMOB_REWARDED_AD_UNIT_ID')
+                ?: "ca-app-pub-3940256099942544/5224354917"
+        buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"${rewardedAdUnitId}\"")
+    }
+    // Prevent compression of font files so they can be loaded as file descriptors
+    androidResources {
+        noCompress 'ttf'
+    }
+    
+    buildFeatures {
+        compose true
+        buildConfig true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+        warningsAsErrors false
+        // Disable dependency checking to avoid Kotlin version mismatch issues during lint
+        // The actual compilation uses the correct Kotlin version from build.gradle
+        checkDependencies false
+    }
+}
+
+dependencies {
+    def composeBom = platform('androidx.compose:compose-bom:2023.10.01')
+    implementation composeBom
+    androidTestImplementation composeBom
+
+    implementation "androidx.core:core-ktx:1.12.0"
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "com.google.android.material:material:1.11.0"
+
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.material3:material3"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.activity:activity-compose:1.8.2"
+    implementation "io.coil-kt:coil-compose:2.4.0"
+    implementation "androidx.navigation:navigation-compose:2.7.6"
+
+    implementation "androidx.compose.material:material-icons-core"
+    implementation "androidx.compose.material:material-icons-extended"
+
+    implementation "androidx.core:core:1.12.0"
+    
+    // Splash Screen API
+    implementation "androidx.core:core-splashscreen:1.0.1"
+    
+    // Page Curl Library for realistic book page turning
+    implementation "io.github.oleksandrbalan:pagecurl:1.1.0"
+
+    // Google Mobile Ads
+    implementation "com.google.android.gms:play-services-ads:23.3.0"
+}

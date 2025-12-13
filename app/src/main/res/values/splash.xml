@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Splash screen configuration -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background to white -->
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">@android:color/white</item>
+        
+        <!-- Set the animated vector drawable as the splash icon -->
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@drawable/splash_animation</item>
+        
+        <!-- Keep splash screen visible while app loads -->
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="31">2000</item>
+        
+        <!-- Post splash screen theme -->
+        <item name="postSplashScreenTheme">@style/Theme.KidsStoryBook</item>
+    </style>
+</resources>
+

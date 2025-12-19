@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import com.shahadalrubaye.kidsstorybook.data.StoryRepository
@@ -57,9 +58,20 @@ fun RoadmapScreen(
     }
     
     val scrollState = rememberScrollState()
+    val density = LocalDensity.current
     
-    // Scroll to bottom once scrollState.maxValue is available
-    LaunchedEffect(Unit) {
+    // Calculate the last opened level (considering ad unlocks)
+    val lastOpenedLevel = remember(progress, adUnlockedLevels, adLockedLevels, totalLevels) {
+        (1..totalLevels).lastOrNull { level ->
+            val baseUnlocked = progress.isLevelUnlocked(level)
+            val requiresAdUnlock = adLockedLevels.contains(level)
+            val hasAdUnlock = adUnlockedLevels.contains(level)
+            baseUnlocked && (!requiresAdUnlock || hasAdUnlock)
+        } ?: 1
+    }
+    
+    // Scroll to the last opened level once scrollState.maxValue is available
+    LaunchedEffect(scrollState, lastOpenedLevel, sectionsForDisplay, density) {
         // Wait for maxValue to be calculated - poll until it's ready
         var attempts = 0
         while (attempts < 100) {
@@ -67,7 +79,39 @@ fun RoadmapScreen(
             if (currentMax > 0) {
                 // Small delay to ensure everything is stable
                 delay(50)
-                scrollState.animateScrollTo(currentMax)
+                
+                // Calculate scroll position for the last opened level
+                // Each section has levelsPerSection levels, each level takes 140dp
+                // Section has 60dp top + 30dp bottom padding
+                // Sections are displayed in reverse order (highest first)
+                var position = 0
+                var found = false
+                
+                with(density) {
+                    sectionsForDisplay.forEach { (_, levels, _) ->
+                        if (!found && levels.contains(lastOpenedLevel)) {
+                            // Find position within this section
+                            val sortedLevels = levels.sortedDescending()
+                            val levelIndex = sortedLevels.indexOf(lastOpenedLevel)
+                            if (levelIndex >= 0) {
+                                // Each level is 140dp, section has 60dp top padding
+                                // Position is: section top (60dp) + (levelIndex * 140dp)
+                                // Subtract 2 levels (280dp) to show two levels above the last opened one
+                                val targetLevelIndex = (levelIndex - 3).coerceAtLeast(0)
+                                position += (60.dp + (targetLevelIndex * 140).dp).roundToPx()
+                                found = true
+                            }
+                        } else if (!found) {
+                            // Add full section height: 60dp top + (actual levels count * 140dp) + 30dp bottom
+                            val actualLevelsCount = levels.size
+                            position += (60.dp + (actualLevelsCount * 140).dp + 30.dp).roundToPx()
+                        }
+                    }
+                }
+                
+                // Scroll to the calculated position, but don't exceed maxValue
+                val targetPosition = position.coerceIn(0, currentMax)
+                scrollState.animateScrollTo(targetPosition)
                 break
             }
             delay(16) // ~1 frame at 60fps

@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import kotlinx.coroutines.delay
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.shahadalrubaye.kidsstorybook.data.ComparisonRepository
@@ -68,6 +70,33 @@ fun ComparisonsScreen(
         comparisonGroups.flatMap { group -> group.children }
     }
     var selectedItem by remember { mutableStateOf<ComparisonItem?>(null) }
+    val listState = rememberLazyListState()
+
+    // Find the last unlocked comparison index
+    val lastUnlockedIndex = remember(comparisonItems, lockedComparisonIds, adUnlockedComparisonIds) {
+        comparisonItems.indexOfLast { item ->
+            val requiresUnlock = lockedComparisonIds.contains(item.id)
+            val hasUnlocked = adUnlockedComparisonIds.contains(item.id)
+            !requiresUnlock || hasUnlocked
+        }.takeIf { it >= 0 } ?: 0
+    }
+
+    // Scroll to the last unlocked comparison
+    LaunchedEffect(listState, lastUnlockedIndex) {
+        if (lastUnlockedIndex > 0) {
+            // Wait for the list to be laid out
+            var attempts = 0
+            while (attempts < 100) {
+                if (listState.layoutInfo.totalItemsCount > 0) {
+                    delay(50)
+                    listState.animateScrollToItem(lastUnlockedIndex)
+                    break
+                }
+                delay(16)
+                attempts++
+            }
+        }
+    }
 
     LaunchedEffect(newlyUnlockedComparisonId) {
         if (!newlyUnlockedComparisonId.isNullOrBlank()) {
@@ -125,7 +154,8 @@ fun ComparisonsScreen(
                         else -> "Watch Ad"
                     },
                     onItemClick = { selectedItem = it },
-                    onLockedItemClick = onLockedComparisonClick
+                    onLockedItemClick = onLockedComparisonClick,
+                    listState = listState
                 )
             }
         }
@@ -191,9 +221,11 @@ private fun ComparisonZigZagList(
     adUnlockedComparisonIds: Set<String>,
     lockedCtaLabel: String,
     onItemClick: (ComparisonItem) -> Unit,
-    onLockedItemClick: (ComparisonItem) -> Unit
+    onLockedItemClick: (ComparisonItem) -> Unit,
+    listState: androidx.compose.foundation.lazy.LazyListState
 ) {
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)

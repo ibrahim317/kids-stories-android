@@ -306,9 +306,10 @@ fun LevelScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Play button - always on the left
                     IconButton(
                         onClick = {
                             if (isPlaying) {
@@ -335,16 +336,9 @@ fun LevelScreen(
                             modifier = Modifier.size(32.dp)
                         )
                     }
-                }
 
-                // Finish button (only shown on last page)
-                if (currentImageIndex == totalPages - 1) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 32.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
+                    // Finish button - only shown on last page, next to play button
+                    if (currentImageIndex == totalPages - 1) {
                         CartoonButton(
                             text = when (settings.language) {
                                 "ar" -> "إنهاء"
@@ -356,7 +350,16 @@ fun LevelScreen(
                                 onLevelComplete()
                             },
                             gradientColors = listOf(LimeGreen, FunGreen),
+                            height = 64.dp,
+                            fontSize = 18,
                             modifier = Modifier.fillMaxWidth(0.7f)
+                        )
+                    } else {
+                        // Invisible spacer to maintain layout consistency when finish button is not shown
+                        Spacer(
+                            modifier = Modifier
+                                .fillMaxWidth(0.7f)
+                                .height(64.dp)
                         )
                     }
                 }

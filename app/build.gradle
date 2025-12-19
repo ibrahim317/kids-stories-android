@@ -10,8 +10,8 @@ android {
         applicationId "com.shahadalrubaye.kidsstorybook"
         minSdkVersion 24
         targetSdkVersion 35
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.1"
         manifestPlaceholders = [
                 admobAppId: (project.findProperty('ADMOB_APP_ID')
                         ?: "ca-app-pub-4649566821640233~2127823127")

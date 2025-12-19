@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import com.shahadalrubaye.kidsstorybook.data.AnimalRepository
 import com.shahadalrubaye.kidsstorybook.models.Animal
 import com.shahadalrubaye.kidsstorybook.models.AppSettings
@@ -32,6 +34,33 @@ fun AnimalsScreen(
 ) {
     val animals = remember { AnimalRepository.getAllAnimals() }
     var selectedAnimal by remember { mutableStateOf<Animal?>(null) }
+    val gridState = rememberLazyGridState()
+
+    // Find the last unlocked animal index
+    val lastUnlockedIndex = remember(animals, lockedAnimals, adUnlockedAnimals) {
+        animals.indexOfLast { animal ->
+            val requiresUnlock = lockedAnimals.contains(animal.name)
+            val hasUnlocked = adUnlockedAnimals.contains(animal.name)
+            !requiresUnlock || hasUnlocked
+        }.takeIf { it >= 0 } ?: 0
+    }
+
+    // Scroll to the last unlocked animal
+    LaunchedEffect(gridState, lastUnlockedIndex) {
+        if (lastUnlockedIndex > 0) {
+            // Wait for the grid to be laid out
+            var attempts = 0
+            while (attempts < 100) {
+                if (gridState.layoutInfo.totalItemsCount > 0) {
+                    delay(50)
+                    gridState.animateScrollToItem(lastUnlockedIndex)
+                    break
+                }
+                delay(16)
+                attempts++
+            }
+        }
+    }
 
     LaunchedEffect(newlyUnlockedAnimal) {
         if (!newlyUnlockedAnimal.isNullOrBlank()) {
@@ -91,6 +120,7 @@ fun AnimalsScreen(
             // Animals Grid
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
+                state = gridState,
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),

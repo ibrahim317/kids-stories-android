@@ -28,13 +28,13 @@ private val stories = listOf(
             "stories/barnaby_bear_and_the_big_red_ball/ar/1/1.webp",
             "stories/barnaby_bear_and_the_big_red_ball/ar/2/2.webp",
             "stories/barnaby_bear_and_the_big_red_ball/ar/3/3.webp",
-            "stories/barnaby_bear_and_the_big_red_ball/ar/4/4.jpg",
-            "stories/barnaby_bear_and_the_big_red_ball/ar/5/5.jpg",
-            "stories/barnaby_bear_and_the_big_red_ball/ar/6/6.jpg",
-            "stories/barnaby_bear_and_the_big_red_ball/ar/7/7.jpg",
-            "stories/barnaby_bear_and_the_big_red_ball/ar/8/8.jpg",
+            "stories/barnaby_bear_and_the_big_red_ball/ar/4/4.webp",
+            "stories/barnaby_bear_and_the_big_red_ball/ar/5/5.webp",
+            "stories/barnaby_bear_and_the_big_red_ball/ar/6/6.webp",
+            "stories/barnaby_bear_and_the_big_red_ball/ar/7/7.webp",
+            "stories/barnaby_bear_and_the_big_red_ball/ar/8/8.webp",
             "stories/barnaby_bear_and_the_big_red_ball/ar/9/9.webp",
-            "stories/barnaby_bear_and_the_big_red_ball/ar/10/10.jpg"
+            "stories/barnaby_bear_and_the_big_red_ball/ar/10/10.webp"
         ),
         turkishImagePaths = listOf(
             "stories/barnaby_bear_and_the_big_red_ball/tr/cover/cover.webp",

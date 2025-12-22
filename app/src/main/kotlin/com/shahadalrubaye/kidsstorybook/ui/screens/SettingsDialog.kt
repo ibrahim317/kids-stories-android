@@ -1,39 +1,43 @@
 package com.shahadalrubaye.kidsstorybook.ui.screens
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.material3.Text
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.shahadalrubaye.kidsstorybook.models.AgeGroup
 import com.shahadalrubaye.kidsstorybook.models.AppSettings
-import com.shahadalrubaye.kidsstorybook.ui.components.SmallCartoonButton
+import com.shahadalrubaye.kidsstorybook.ui.components.CompactCartoonOptionButton
+import com.shahadalrubaye.kidsstorybook.ui.components.MiniCartoonButton
 import com.shahadalrubaye.kidsstorybook.ui.theme.*
 
 @Composable
@@ -78,25 +82,25 @@ fun SettingsDialog(
             )
 
 
-            // Scrollable content
+            // Scrollable content - Compact layout
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 70.dp, vertical = 20.dp),
+                    .padding(horizontal = 70.dp, vertical = 120.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Spacer(modifier = Modifier.height(120.dp))
+                Spacer(modifier = Modifier.height(95.dp))
 
-                // Age Group Section
+                // Age Group Section - Compact header
                 Text(
                     text = when (selectedLanguage) {
                         "ar" -> "الفئة العمرية"
                         "tr" -> "Yaş Grubu"
                         else -> "Age Group"
                     },
-                    fontSize = 22.sp,
+                    fontSize = 18.sp,
                     fontFamily = FredokaFontFamily,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF3D0066),
@@ -104,104 +108,80 @@ fun SettingsDialog(
                     textAlign = TextAlign.Center
                 )
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Age options - Horizontal Row (side by side)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
+                ) {
+                    AgeGroup.values().forEach { ageGroup ->
+                        CompactCartoonOptionButton(
+                            text = ageGroup.getDisplayName(selectedLanguage),
+                            selected = selectedAgeGroup == ageGroup,
+                            onClick = { selectedAgeGroup = ageGroup },
+                            selectedGradient = listOf(GradientPurpleStart, GradientPurpleEnd),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                // Name input section - Animated visibility for AGE_5_6
+                AnimatedVisibility(
+                    visible = selectedAgeGroup == AgeGroup.AGE_5_6,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        val nameLabel = when (selectedLanguage) {
+                            "ar" -> "اسم الطفل"
+                            "tr" -> "Çocuğun Adı"
+                            else -> "Child Name"
+                        }
+                        val namePlaceholder = when (selectedLanguage) {
+                            "ar" -> "أدخل الاسم هنا"
+                            "tr" -> "İsmi buraya yazın"
+                            else -> "Type the name here"
+                        }
+                        val nameErrorMessage = when (selectedLanguage) {
+                            "ar" -> "الاسم مطلوب"
+                            "tr" -> "İsim gerekli"
+                            else -> "Name required"
+                        }
+
+                        // Cartoon styled text input
+                        CartoonTextField(
+                            value = playerName,
+                            onValueChange = {
+                                playerName = it.take(30)
+                                if (playerName.isNotBlank()) {
+                                    isNameError = false
+                                }
+                            },
+                            label = nameLabel,
+                            placeholder = namePlaceholder,
+                            isError = isNameError,
+                            errorMessage = if (isNameError) nameErrorMessage else null,
+                            modifier = Modifier.fillMaxWidth(0.95f)
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Age options - Vertical Stack
-                AgeGroup.values().forEach { ageGroup ->
-                    KidsFriendlyOptionButton(
-                        text = ageGroup.getDisplayName(selectedLanguage),
-                        selected = selectedAgeGroup == ageGroup,
-                        onClick = { selectedAgeGroup = ageGroup },
-                        gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                        modifier = Modifier.fillMaxWidth(0.9f)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                if (selectedAgeGroup == AgeGroup.AGE_5_6) {
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    val nameLabel = when (selectedLanguage) {
-                        "ar" -> "اسم الطفل"
-                        "tr" -> "Çocuğun Adı"
-                        else -> "Child Name"
-                    }
-                    val namePlaceholder = when (selectedLanguage) {
-                        "ar" -> "أدخل الاسم هنا"
-                        "tr" -> "İsmi buraya yazın"
-                        else -> "Type the name here"
-                    }
-                    val nameErrorMessage = when (selectedLanguage) {
-                        "ar" -> "الاسم مطلوب لهذه الفئة العمرية"
-                        "tr" -> "Bu yaş grubu için isim gerekli"
-                        else -> "Name is required for this age group"
-                    }
-
-                    Text(
-                        text = nameLabel,
-                        fontSize = 20.sp,
-                        fontFamily = FredokaFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF3D0066),
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .padding(bottom = 8.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = playerName,
-                        onValueChange = {
-                            playerName = it.take(30)
-                            if (playerName.isNotBlank()) {
-                                isNameError = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(0.9f),
-                        placeholder = {
-                            Text(text = namePlaceholder)
-                        },
-                        singleLine = true,
-                        isError = isNameError,
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
-                    )
-
-                    if (playerName.isNotBlank()) {
-                        Text(
-                            text = "${nameLabel}: ${playerName.trim()}",
-                            fontSize = 16.sp,
-                            fontFamily = FredokaFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF004D66),
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(top = 8.dp)
-                        )
-                    }
-
-                    if (isNameError) {
-                        Text(
-                            text = nameErrorMessage,
-                            fontSize = 14.sp,
-                            color = Color.Red,
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(top = 4.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Language Section
+                // Language Section - Compact header
                 Text(
                     text = when (selectedLanguage) {
                         "ar" -> "اللغة"
                         "tr" -> "Dil"
                         else -> "Language"
                     },
-                    fontSize = 22.sp,
+                    fontSize = 18.sp,
                     fontFamily = FredokaFontFamily,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF004D66),
@@ -209,39 +189,44 @@ fun SettingsDialog(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Language options - Vertical Stack
-                KidsFriendlyOptionButton(
-                    text = "🇸🇦 العربية",
-                    selected = selectedLanguage == "ar",
-                    onClick = { selectedLanguage = "ar" },
-                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                // Language options - Two rows for compact layout
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                ) {
+                    CompactCartoonOptionButton(
+                        text = "🇸🇦 العربية",
+                        selected = selectedLanguage == "ar",
+                        onClick = { selectedLanguage = "ar" },
+                        selectedGradient = listOf(Color(0xFF42A5F5), Color(0xFF1565C0)),
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    CompactCartoonOptionButton(
+                        text = "🇬🇧 English",
+                        selected = selectedLanguage == "en",
+                        onClick = { selectedLanguage = "en" },
+                        selectedGradient = listOf(Color(0xFF42A5F5), Color(0xFF1565C0)),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
                 
-                KidsFriendlyOptionButton(
-                    text = "🇬🇧 English",
-                    selected = selectedLanguage == "en",
-                    onClick = { selectedLanguage = "en" },
-                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
-                KidsFriendlyOptionButton(
+                CompactCartoonOptionButton(
                     text = "🇹🇷 Türkçe",
                     selected = selectedLanguage == "tr",
                     onClick = { selectedLanguage = "tr" },
-                    gradientColors = listOf(GradientPurpleStart, GradientPurpleEnd),
-                    modifier = Modifier.fillMaxWidth(0.9f)
+                    selectedGradient = listOf(Color(0xFF42A5F5), Color(0xFF1565C0)),
+                    modifier = Modifier.fillMaxWidth(0.5f)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // Apply button - Green for clear CTA
-                SmallCartoonButton(
+                // Apply button - Compact green CTA
+                MiniCartoonButton(
                     text = when (selectedLanguage) {
                         "ar" -> "تطبيق"
                         "tr" -> "Uygula"
@@ -252,7 +237,7 @@ fun SettingsDialog(
                         val trimmedName = playerName.trim()
                         if (isNameRequired && trimmedName.isBlank()) {
                             isNameError = true
-                            return@SmallCartoonButton
+                            return@MiniCartoonButton
                         }
                         onSettingsChange(
                             AppSettings(
@@ -263,96 +248,119 @@ fun SettingsDialog(
                         )
                         onDismiss()
                     },
-                    gradientColors = listOf(Color(0xFF4CAF50), Color(0xFF2E7D32)),
-                    modifier = Modifier.fillMaxWidth(0.8f)
+                    gradientColors = listOf(Color(0xFF66BB6A), Color(0xFF388E3C)),
+                    modifier = Modifier.fillMaxWidth(0.6f)
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
+/**
+ * Cartoon styled text field that matches the app's playful aesthetic
+ */
 @Composable
-private fun KidsFriendlyOptionButton(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    gradientColors: List<Color>,
-    modifier: Modifier = Modifier
+private fun CartoonTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    errorMessage: String? = null
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "option_scale"
-    )
-
-    Box(
-        modifier = modifier
-            .heightIn(min = 48.dp)
-            .scale(scale)
-            .shadow(
-                elevation = if (selected) 12.dp else 4.dp,
-                shape = RoundedCornerShape(20.dp),
-                clip = false,
-                spotColor = if (selected) Color(0x80FFD700) else Color.Black.copy(alpha = 0.25f)
-            )
-            .clip(RoundedCornerShape(20.dp))
-            .background(
-                brush = if (selected) {
-                    Brush.verticalGradient(gradientColors)
-                } else {
-                    Brush.verticalGradient(listOf(LightGray, Color(0xFFE0E0E0)))
-                }
-            )
-            .then(
-                if (selected) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = Color(0x80FFFFFF),
-                        shape = RoundedCornerShape(20.dp)
+    Column(modifier = modifier) {
+        // Label
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontFamily = FredokaFontFamily,
+            fontWeight = FontWeight.Bold,
+            color = if (isError) Color(0xFFD32F2F) else Color(0xFF3D0066),
+            modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+        )
+        
+        // Cartoon styled input box
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp)
+                .shadow(
+                    elevation = 3.dp,
+                    shape = RoundedCornerShape(14.dp),
+                    clip = false
+                )
+                .clip(RoundedCornerShape(14.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        if (isError) {
+                            listOf(Color(0xFFFFEBEE), Color(0xFFFFCDD2))
+                        } else {
+                            listOf(Color(0xFFFFFDE7), Color(0xFFFFF9C4))
+                        }
                     )
-                } else {
-                    Modifier
+                )
+                .border(
+                    width = 2.dp,
+                    color = if (isError) Color(0xFFEF5350) else Color(0xFFFFB74D),
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                textStyle = TextStyle(
+                    fontSize = 15.sp,
+                    fontFamily = FredokaFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF3D0066)
+                ),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                cursorBrush = SolidColor(Color(0xFF7B1FA2)),
+                modifier = Modifier.fillMaxWidth(),
+                decorationBox = { innerTextField ->
+                    if (value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            fontSize = 14.sp,
+                            fontFamily = FredokaFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF9E9E9E)
+                        )
+                    }
+                    innerTextField()
                 }
             )
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Check mark emoji or circle for selection
+        }
+        
+        // Error message
+        if (errorMessage != null) {
             Text(
-                text = if (selected) "✓" else "○",
-                fontSize = 20.sp,
+                text = errorMessage,
+                fontSize = 11.sp,
                 fontFamily = FredokaFontFamily,
-                fontWeight = FontWeight.Bold,
-                color = if (selected) Color.White else Color.Gray
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFFD32F2F),
+                modifier = Modifier.padding(start = 8.dp, top = 2.dp)
             )
-            
-            Spacer(modifier = Modifier.width(10.dp))
-            
+        }
+        
+        // Show entered name preview
+        if (value.isNotBlank() && !isError) {
             Text(
-                text = text,
-                fontSize = if (selected) 18.sp else 16.sp,
+                text = "✨ ${value.trim()}",
+                fontSize = 12.sp,
                 fontFamily = FredokaFontFamily,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
-                color = if (selected) TextLight else Color.DarkGray,
-                textAlign = TextAlign.Center
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF4CAF50),
+                modifier = Modifier.padding(start = 8.dp, top = 3.dp)
             )
         }
     }
 }
+

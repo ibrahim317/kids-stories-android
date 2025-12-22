@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +35,13 @@ fun AnimalsScreen(
 ) {
     val animals = remember { AnimalRepository.getAllAnimals() }
     var selectedAnimal by remember { mutableStateOf<Animal?>(null) }
+    
+    // Save scroll position to preserve it across navigation
+    var savedScrollIndex by rememberSaveable(key = "animals_scroll_index") { mutableStateOf(0) }
+    var savedScrollOffset by rememberSaveable(key = "animals_scroll_offset") { mutableStateOf(0) }
+    var hasUserScrolled by rememberSaveable(key = "animals_has_scrolled") { mutableStateOf(false) }
+    var hasRestoredScroll by remember { mutableStateOf(false) }
+    
     val gridState = rememberLazyGridState()
 
     // Find the last unlocked animal index
@@ -45,19 +53,39 @@ fun AnimalsScreen(
         }.takeIf { it >= 0 } ?: 0
     }
 
-    // Scroll to the last unlocked animal
-    LaunchedEffect(gridState, lastUnlockedIndex) {
-        if (lastUnlockedIndex > 0) {
-            // Wait for the grid to be laid out
-            var attempts = 0
-            while (attempts < 100) {
-                if (gridState.layoutInfo.totalItemsCount > 0) {
-                    delay(50)
+    // Restore saved scroll position or auto-scroll to last unlocked on first visit
+    LaunchedEffect(gridState, savedScrollIndex, savedScrollOffset, hasUserScrolled, hasRestoredScroll) {
+        if (hasRestoredScroll) return@LaunchedEffect
+        
+        // Wait for the grid to be laid out
+        var attempts = 0
+        while (attempts < 100) {
+            if (gridState.layoutInfo.totalItemsCount > 0) {
+                delay(50)
+                
+                if (hasUserScrolled && savedScrollIndex > 0) {
+                    // Restore saved scroll position
+                    gridState.scrollToItem(savedScrollIndex, savedScrollOffset)
+                } else if (!hasUserScrolled && lastUnlockedIndex > 0) {
+                    // Auto-scroll to last unlocked animal on first visit
                     gridState.animateScrollToItem(lastUnlockedIndex)
-                    break
                 }
-                delay(16)
-                attempts++
+                
+                hasRestoredScroll = true
+                break
+            }
+            delay(16)
+            attempts++
+        }
+    }
+    
+    // Save scroll position when it changes
+    LaunchedEffect(gridState.firstVisibleItemIndex, gridState.firstVisibleItemScrollOffset) {
+        if (hasRestoredScroll) {
+            savedScrollIndex = gridState.firstVisibleItemIndex
+            savedScrollOffset = gridState.firstVisibleItemScrollOffset
+            if (gridState.firstVisibleItemIndex > 0) {
+                hasUserScrolled = true
             }
         }
     }

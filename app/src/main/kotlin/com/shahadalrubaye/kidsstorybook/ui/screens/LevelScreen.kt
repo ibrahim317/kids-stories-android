@@ -176,7 +176,9 @@ fun LevelScreen(
         )
         
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 24.dp)
         ) {
             // Top bar
             Row(
@@ -230,7 +232,7 @@ fun LevelScreen(
             if (imagePaths.isNotEmpty()) {
                 Box(
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(0.85f)
                         .fillMaxWidth()
                         .padding(16.dp)
                         .background(Color(0xFFF5E6D3).copy(alpha = 0.9f))

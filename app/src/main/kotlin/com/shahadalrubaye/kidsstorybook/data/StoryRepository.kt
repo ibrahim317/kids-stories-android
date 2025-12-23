@@ -288,13 +288,13 @@ private val stories = listOf(
         arabicImagePaths = listOf(
             "stories/choo_choo_to_bedtime/ar/cover/cover.webp",
             "stories/choo_choo_to_bedtime/ar/1/1.webp",
-            "stories/choo_choo_to_bedtime/ar/2/ar_2.webp",
-            "stories/choo_choo_to_bedtime/ar/3/ar_3.webp",
-            "stories/choo_choo_to_bedtime/ar/4/ar_4.webp",
-            "stories/choo_choo_to_bedtime/ar/5/ar_5.webp",
-            "stories/choo_choo_to_bedtime/ar/6/ar_6.webp",
-            "stories/choo_choo_to_bedtime/ar/7/ar_7.webp",
-            "stories/choo_choo_to_bedtime/ar/8/ar_8.webp"
+            "stories/choo_choo_to_bedtime/ar/2/2.webp",
+            "stories/choo_choo_to_bedtime/ar/3/3.webp",
+            "stories/choo_choo_to_bedtime/ar/4/4.webp",
+            "stories/choo_choo_to_bedtime/ar/5/5.webp",
+            "stories/choo_choo_to_bedtime/ar/6/6.webp",
+            "stories/choo_choo_to_bedtime/ar/7/7.webp",
+            "stories/choo_choo_to_bedtime/ar/8/8.webp"
         ),
         turkishImagePaths = listOf(
             "stories/choo_choo_to_bedtime/tr/cover/cover.webp",

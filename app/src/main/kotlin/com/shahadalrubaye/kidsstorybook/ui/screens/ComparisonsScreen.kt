@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +38,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import kotlinx.coroutines.delay
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.shahadalrubaye.kidsstorybook.data.ComparisonRepository
@@ -71,60 +69,7 @@ fun ComparisonsScreen(
         comparisonGroups.flatMap { group -> group.children }
     }
     var selectedItem by remember { mutableStateOf<ComparisonItem?>(null) }
-    
-    // Save scroll position to preserve it across navigation
-    var savedScrollIndex by rememberSaveable(key = "comparisons_scroll_index") { mutableStateOf(0) }
-    var savedScrollOffset by rememberSaveable(key = "comparisons_scroll_offset") { mutableStateOf(0) }
-    var hasUserScrolled by rememberSaveable(key = "comparisons_has_scrolled") { mutableStateOf(false) }
-    var hasRestoredScroll by remember { mutableStateOf(false) }
-    
     val listState = rememberLazyListState()
-
-    // Find the last unlocked comparison index
-    val lastUnlockedIndex = remember(comparisonItems, lockedComparisonIds, adUnlockedComparisonIds) {
-        comparisonItems.indexOfLast { item ->
-            val requiresUnlock = lockedComparisonIds.contains(item.id)
-            val hasUnlocked = adUnlockedComparisonIds.contains(item.id)
-            !requiresUnlock || hasUnlocked
-        }.takeIf { it >= 0 } ?: 0
-    }
-
-    // Restore saved scroll position or auto-scroll to last unlocked on first visit
-    LaunchedEffect(listState, savedScrollIndex, savedScrollOffset, hasUserScrolled, hasRestoredScroll) {
-        if (hasRestoredScroll) return@LaunchedEffect
-        
-        // Wait for the list to be laid out
-        var attempts = 0
-        while (attempts < 100) {
-            if (listState.layoutInfo.totalItemsCount > 0) {
-                delay(50)
-                
-                if (hasUserScrolled && savedScrollIndex > 0) {
-                    // Restore saved scroll position
-                    listState.scrollToItem(savedScrollIndex, savedScrollOffset)
-                } else if (!hasUserScrolled && lastUnlockedIndex > 0) {
-                    // Auto-scroll to last unlocked comparison on first visit
-                    listState.animateScrollToItem(lastUnlockedIndex)
-                }
-                
-                hasRestoredScroll = true
-                break
-            }
-            delay(16)
-            attempts++
-        }
-    }
-    
-    // Save scroll position when it changes
-    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-        if (hasRestoredScroll) {
-            savedScrollIndex = listState.firstVisibleItemIndex
-            savedScrollOffset = listState.firstVisibleItemScrollOffset
-            if (listState.firstVisibleItemIndex > 0) {
-                hasUserScrolled = true
-            }
-        }
-    }
 
     LaunchedEffect(newlyUnlockedComparisonId) {
         if (!newlyUnlockedComparisonId.isNullOrBlank()) {
